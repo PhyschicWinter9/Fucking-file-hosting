@@ -99,7 +99,7 @@ export default function SetupIndex({ setupStatus, phpInfo, systemRequirements }:
         dbPassword: '',
 
         // Basic Settings
-        appName: 'Fast File Hosting',
+        appName: 'Fucking File Hosting',
         appUrl: window.location.origin,
         appEnv: 'production',
         appDebug: false,
@@ -440,7 +440,7 @@ export default function SetupIndex({ setupStatus, phpInfo, systemRequirements }:
                                 id="appName"
                                 value={config.appName}
                                 onChange={(e) => setConfig({ ...config, appName: e.target.value })}
-                                placeholder="Fast File Hosting"
+                                placeholder="Fucking File Hosting"
                             />
                         </div>
                         <div>

@@ -18,6 +18,9 @@ Route::get('/p/{fileId}', [FileDownloadController::class, 'preview'])->name('fil
 // API Documentation page
 Route::get('/docs/api', [FileUploadController::class, 'apiDocs'])->name('docs.api');
 
+// SEO routes
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+
 // Setup wizard routes
 Route::get('/setup', [SetupController::class, 'index'])->name('setup.index');
 Route::post('/api/setup/save', [SetupController::class, 'save'])->name('setup.save');

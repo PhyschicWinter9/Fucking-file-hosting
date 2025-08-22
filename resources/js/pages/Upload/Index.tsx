@@ -3,7 +3,6 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/useToast';
-import { Head } from '@inertiajs/react';
 import { CheckCircle, Lock, Zap } from 'lucide-react';
 import { useState } from 'react';
 
@@ -48,9 +47,11 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
     };
 
     return (
-        <Layout>
-            <Head title="Fucking File" />
-
+        <Layout
+            title="Fucking File Hosting - Upload Files Instantly, No Registration Required"
+            description={`Upload files up to ${formatFileSize(maxFileSize)} instantly with complete privacy. No registration, no tracking, no bullshit. Secure anonymous file hosting with cryptographic protection.`}
+            image="/images/og-upload.png"
+        >
             <div className="container mx-auto px-4 py-8">
                 {/* Hero Section */}
                 <div className="mb-12 text-center">

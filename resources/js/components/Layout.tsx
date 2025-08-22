@@ -1,14 +1,25 @@
 import { Toaster } from '@/components/ui/sonner';
 import React from 'react';
+import MetaTags from './MetaTags';
 
 interface LayoutProps {
     children: React.ReactNode;
     title?: string;
+    description?: string;
+    image?: string;
+    url?: string;
 }
 
-export default function Layout({ children, title = 'Fucking File Hosting' }: LayoutProps) {
+export default function Layout({
+    children,
+    title = 'Fucking File Hosting - Blazing Fast, Privacy-First File Sharing',
+    description,
+    image,
+    url,
+}: LayoutProps) {
     return (
         <>
+            <MetaTags title={title} description={description} image={image} url={url} />
             <div className="dark min-h-screen bg-background text-foreground">
                 {/* Header */}
                 <header className="border-b border-border bg-card">

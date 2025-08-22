@@ -5,7 +5,7 @@
 ### Development Environment
 
 ```env
-APP_NAME="Fast File Hosting"
+APP_NAME="Fucking File Hosting"
 APP_ENV=local
 APP_KEY=base64:YOUR_LOCAL_KEY
 APP_DEBUG=true
@@ -22,7 +22,7 @@ SESSION_SECURE=false
 ### Staging Environment
 
 ```env
-APP_NAME="Fast File Hosting - Staging"
+APP_NAME="Fucking File Hosting - Staging"
 APP_ENV=staging
 APP_KEY=base64:YOUR_STAGING_KEY
 APP_DEBUG=false
@@ -43,7 +43,7 @@ SESSION_SECURE=true
 ### Production Environment
 
 ```env
-APP_NAME="Fast File Hosting"
+APP_NAME="Fucking File Hosting"
 APP_ENV=production
 APP_KEY=base64:YOUR_PRODUCTION_KEY
 APP_DEBUG=false

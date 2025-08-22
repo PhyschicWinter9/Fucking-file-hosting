@@ -1,4 +1,4 @@
-# Fast File Hosting - Shared Hosting Deployment Guide
+# Fucking File Hosting - Shared Hosting Deployment Guide
 
 ## Prerequisites
 
@@ -33,7 +33,7 @@ php artisan key:generate
 2. Update the following variables:
 
 ```env
-APP_NAME="Fast File Hosting"
+APP_NAME="Fucking File Hosting"
 APP_ENV=production
 APP_KEY=base64:YOUR_GENERATED_KEY_HERE
 APP_DEBUG=false

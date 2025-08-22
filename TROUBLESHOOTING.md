@@ -1,4 +1,4 @@
-# Fast File Hosting - Troubleshooting Guide
+# Fucking File Hosting - Troubleshooting Guide
 
 ## Common Issues and Solutions
 

@@ -61,7 +61,7 @@ describe('UploadIndex', () => {
     it('renders the main upload interface', () => {
         render(<UploadIndex />);
 
-        expect(screen.getByText('Fucking Fast File Hosting')).toBeInTheDocument();
+        expect(screen.getByText('Fucking Fucking File Hosting')).toBeInTheDocument();
         expect(screen.getByText(/Upload files up to 10GB instantly/)).toBeInTheDocument();
         expect(screen.getByTestId('file-uploader')).toBeInTheDocument();
     });
@@ -248,7 +248,7 @@ describe('UploadIndex', () => {
     it('has proper responsive classes', () => {
         render(<UploadIndex />);
 
-        const heroTitle = screen.getByText('Fucking Fast File Hosting');
+        const heroTitle = screen.getByText('Fucking Fucking File Hosting');
         expect(heroTitle).toHaveClass('text-4xl', 'md:text-6xl');
 
         const heroDescription = screen.getByText(/Upload files up to 10GB instantly/);

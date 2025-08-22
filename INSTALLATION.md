@@ -1,6 +1,6 @@
-# Fast File Hosting - Installation Guide
+# Fucking File Hosting - Installation Guide
 
-This guide will help you install and set up your Fast File Hosting application on both shared hosting and VPS environments.
+This guide will help you install and set up your Fucking File Hosting application on both shared hosting and VPS environments.
 
 ## System Requirements
 

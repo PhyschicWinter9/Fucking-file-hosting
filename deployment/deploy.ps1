@@ -1,7 +1,7 @@
-# Fast File Hosting - cPanel Deployment Script (PowerShell)
+# Fucking File Hosting - cPanel Deployment Script (PowerShell)
 # This script helps prepare the application for cPanel shared hosting deployment
 
-Write-Host "🚀 Preparing Fast File Hosting for cPanel deployment..." -ForegroundColor Green
+Write-Host "🚀 Preparing Fucking File Hosting for cPanel deployment..." -ForegroundColor Green
 
 # Check if we're in the Laravel root directory
 if (-not (Test-Path "artisan")) {
@@ -231,4 +231,4 @@ Write-Host "1. Review deployment\build\DEPLOYMENT_INSTRUCTIONS.md"
 Write-Host "2. Upload files to your cPanel hosting"
 Write-Host "3. Follow the deployment instructions"
 Write-Host ""
-Write-Host "🎉 Your Fast File Hosting application is ready for deployment!" -ForegroundColor Green
+Write-Host "🎉 Your Fucking File Hosting application is ready for deployment!" -ForegroundColor Green

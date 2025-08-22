@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Fast File Hosting - cPanel Deployment Script
+# Fucking File Hosting - cPanel Deployment Script
 # This script helps prepare the application for cPanel shared hosting deployment
 
 set -e
 
-echo "🚀 Preparing Fast File Hosting for cPanel deployment..."
+echo "🚀 Preparing Fucking File Hosting for cPanel deployment..."
 
 # Check if we're in the Laravel root directory
 if [ ! -f "artisan" ]; then
@@ -242,4 +242,4 @@ echo "1. Review deployment/build/DEPLOYMENT_INSTRUCTIONS.md"
 echo "2. Upload files to your cPanel hosting"
 echo "3. Follow the deployment instructions"
 echo ""
-echo "🎉 Your Fast File Hosting application is ready for deployment!"
+echo "🎉 Your Fucking File Hosting application is ready for deployment!"

@@ -6,7 +6,7 @@ return [
     | Security Configuration
     |--------------------------------------------------------------------------
     |
-    | This file contains security settings for the Fast File Hosting service.
+    | This file contains security settings for the Fucking File Hosting service.
     | All settings are designed to maximize security while maintaining
     | functionality for file hosting operations.
     |

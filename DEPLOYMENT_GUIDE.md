@@ -1,8 +1,8 @@
-# Fast File Hosting - Deployment Guide
+# Fucking File Hosting - Deployment Guide
 
 ## Overview
 
-This guide provides step-by-step instructions for deploying the Fast File Hosting application to shared hosting environments with cPanel support.
+This guide provides step-by-step instructions for deploying the Fucking File Hosting application to shared hosting environments with cPanel support.
 
 ## Prerequisites
 
@@ -290,7 +290,7 @@ php artisan db:seed --force
 
 ```env
 # Application
-APP_NAME="Fast File Hosting"
+APP_NAME="Fucking File Hosting"
 APP_ENV=production
 APP_KEY=base64:YOUR_GENERATED_KEY
 APP_DEBUG=false

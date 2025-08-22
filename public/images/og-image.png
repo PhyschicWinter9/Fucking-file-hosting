@@ -1,0 +1,41 @@
+<!-- This would be a PNG file in production. For now, creating an SVG placeholder -->
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b35;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f7931e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0a0a0a"/>
+
+  <!-- Gradient overlay -->
+  <rect width="1200" height="630" fill="url(#grad)" opacity="0.1"/>
+
+  <!-- Main content -->
+  <text x="600" y="200" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="url(#grad)">
+    Fucking File Hosting
+  </text>
+
+  <text x="600" y="280" font-family="Arial, sans-serif" font-size="32" text-anchor="middle" fill="#ffffff">
+    Blazing Fast • Complete Privacy • No Registration
+  </text>
+
+  <text x="600" y="350" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#888888">
+    Upload files up to 100MB instantly with zero tracking
+  </text>
+
+  <!-- Features -->
+  <text x="200" y="450" font-family="Arial, sans-serif" font-size="20" fill="#ff6b35">✓ Anonymous Uploads</text>
+  <text x="200" y="480" font-family="Arial, sans-serif" font-size="20" fill="#ff6b35">✓ Unlimited Speed</text>
+  <text x="200" y="510" font-family="Arial, sans-serif" font-size="20" fill="#ff6b35">✓ Cryptographic Security</text>
+
+  <text x="600" y="450" font-family="Arial, sans-serif" font-size="20" fill="#ff6b35">✓ RESTful API</text>
+  <text x="600" y="480" font-family="Arial, sans-serif" font-size="20" fill="#ff6b35">✓ All File Types</text>
+  <text x="600" y="510" font-family="Arial, sans-serif" font-size="20" fill="#ff6b35">✓ Mobile Optimized</text>
+
+  <!-- Logo -->
+  <rect x="50" y="50" width="60" height="60" rx="15" fill="url(#grad)"/>
+  <text x="80" y="90" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="#ffffff">F</text>
+</svg>
