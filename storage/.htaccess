@@ -1,0 +1,12 @@
+# Deny all access to storage directories
+<Files "*">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+Options -Indexes
+ServerSignature Off
+
+<IfModule mod_headers.c>
+    Header always set X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"
+</IfModule>

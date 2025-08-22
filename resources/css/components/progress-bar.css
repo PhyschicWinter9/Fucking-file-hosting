@@ -1,0 +1,16 @@
+/* Progress Bar Component Styles */
+
+/* Custom progress indicator width */
+.progress-indicator {
+    width: var(--progress-width, 0%);
+}
+
+/* Shimmer effect container width */
+.shimmer-container {
+    width: var(--shimmer-width, 0%);
+}
+
+/* Hardware acceleration for smooth animations */
+.transform-gpu {
+    transform: translateZ(0);
+}
