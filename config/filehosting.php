@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'max_file_size' => env('MAX_FILE_SIZE', (int)(env('MAX_FILE_SIZE_MB', 100) * 1024 * 1024)), // Configurable via MB setting
+    'max_file_size' => env('MAX_FILE_SIZE', (int)(env('MAX_FILE_SIZE_MB', 10) * 1024 * 1024)), // Configurable via MB setting
     'max_file_size_mb' => env('MAX_FILE_SIZE_MB', 100), // Maximum file size in MB (configurable)
     'chunk_size' => env('CHUNK_SIZE', 2097152), // 2MB in bytes (Cloudflare compatibility)
     'bypass_cloudflare' => env('BYPASS_CLOUDFLARE', false), // Enable direct server uploads to bypass Cloudflare limits
@@ -54,9 +54,9 @@ return [
     |
     */
 
-    'default_expiration_days' => env('DEFAULT_EXPIRATION_DAYS', 30),
-    'max_expiration_days' => env('MAX_EXPIRATION_DAYS', 365),
-    'allow_permanent_files' => env('ALLOW_PERMANENT_FILES', true),
+    'default_expiration_days' => env('DEFAULT_EXPIRATION_DAYS', 1),
+    'max_expiration_days' => env('MAX_EXPIRATION_DAYS', 30),
+    'allow_permanent_files' => env('ALLOW_PERMANENT_FILES', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -71,6 +71,20 @@ return [
     'show_download_links' => env('SHOW_DOWNLOAD_LINKS', true),
     'enable_file_info_page' => env('ENABLE_FILE_INFO_PAGE', true),
     'generate_delete_tokens' => env('GENERATE_DELETE_TOKENS', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rate Limiting Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for rate limiting to prevent abuse.
+    |
+    */
+
+    'rate_limiting_enabled' => env('RATE_LIMITING_ENABLED', true),
+    'rate_limit_uploads' => env('RATE_LIMIT_UPLOADS', 10),
+    'rate_limit_downloads' => env('RATE_LIMIT_DOWNLOADS', 60),
+    'rate_limit_api' => env('RATE_LIMIT_API', 100),
 
     /*
     |--------------------------------------------------------------------------

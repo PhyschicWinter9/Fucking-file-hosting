@@ -6,8 +6,8 @@ use App\Services\FileService;
 use App\Services\PrivacyManager;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\StreamedResponse;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -24,7 +24,7 @@ class FileDownloadController extends Controller
 
     /**
      * Download file with streaming support for large files.
-     * 
+     *
      * Requirements: 2.1, 2.2 - Serve files without speed caps, memory-efficient streaming
      */
     public function download(Request $request, string $fileId): StreamedResponse|BinaryFileResponse
@@ -58,14 +58,14 @@ class FileDownloadController extends Controller
 
         // For smaller files, use BinaryFileResponse for better performance
         $response = new BinaryFileResponse($filePath);
-        
+
         // Set proper headers for browser compatibility
         $response->headers->set('Content-Type', $file->mime_type);
         $response->headers->set('Content-Disposition', 'attachment; filename="' . $file->original_name . '"');
         $response->headers->set('Content-Length', (string) $file->file_size);
         $response->headers->set('Cache-Control', 'no-cache, must-revalidate');
         $response->headers->set('Expires', 'Sat, 26 Jul 1997 05:00:00 GMT');
-        
+
         // Add privacy headers
         foreach ($this->privacyManager->getGDPRHeaders() as $header => $value) {
             $response->headers->set($header, $value);
@@ -76,10 +76,10 @@ class FileDownloadController extends Controller
 
     /**
      * Preview file for supported media types.
-     * 
+     *
      * Requirements: 2.4 - Support direct viewing/playing with proper MIME type detection
      */
-    public function preview(Request $request, string $fileId): StreamedResponse|BinaryFileResponse|Response
+    public function preview(Request $request, string $fileId): StreamedResponse|BinaryFileResponse|Response|JsonResponse
     {
         // Apply privacy protection
         $this->privacyManager->sanitizeRequest($request);
@@ -118,12 +118,12 @@ class FileDownloadController extends Controller
 
         // For smaller files, use BinaryFileResponse
         $response = new BinaryFileResponse($filePath);
-        
+
         // Set headers for inline display (preview)
         $response->headers->set('Content-Type', $file->mime_type);
         $response->headers->set('Content-Disposition', 'inline; filename="' . $file->original_name . '"');
         $response->headers->set('Content-Length', (string) $file->file_size);
-        
+
         // Add caching headers for media files
         if ($this->isMediaFile($file->mime_type)) {
             $response->headers->set('Cache-Control', 'public, max-age=3600');
@@ -140,7 +140,7 @@ class FileDownloadController extends Controller
 
     /**
      * Get file metadata as JSON.
-     * 
+     *
      * Requirements: 2.6 - Provide file information via API
      */
     public function info(Request $request, string $fileId): JsonResponse
@@ -181,10 +181,10 @@ class FileDownloadController extends Controller
                 'is_media' => $this->isMediaFile($file->mime_type),
             ]
         ]);
-    } 
+    }
    /**
      * Stream large file with range request support.
-     * 
+     *
      * Requirements: 2.1, 2.2 - Memory-efficient streaming, range request support
      */
     private function streamLargeFile(Request $request, string $filePath, $file, bool $inline = false): StreamedResponse
@@ -192,7 +192,7 @@ class FileDownloadController extends Controller
         $fileSize = $file->file_size;
         $start = 0;
         $end = $fileSize - 1;
-        
+
         // Handle range requests for partial content
         if ($request->hasHeader('Range')) {
             $range = $request->header('Range');
@@ -203,54 +203,54 @@ class FileDownloadController extends Controller
                 }
             }
         }
-        
+
         $length = $end - $start + 1;
-        
+
         $response = new StreamedResponse(function () use ($filePath, $start, $length) {
             $handle = fopen($filePath, 'rb');
             if ($handle === false) {
                 return;
             }
-            
+
             // Seek to start position
             if ($start > 0) {
                 fseek($handle, $start);
             }
-            
+
             // Stream file in chunks
             $chunkSize = 8192; // 8KB chunks
             $bytesRemaining = $length;
-            
+
             while ($bytesRemaining > 0 && !feof($handle)) {
                 $readSize = min($chunkSize, $bytesRemaining);
                 $chunk = fread($handle, $readSize);
-                
+
                 if ($chunk === false) {
                     break;
                 }
-                
+
                 echo $chunk;
                 flush();
-                
+
                 $bytesRemaining -= strlen($chunk);
             }
-            
+
             fclose($handle);
         });
-        
+
         // Set appropriate headers
         $disposition = $inline ? 'inline' : 'attachment';
         $response->headers->set('Content-Type', $file->mime_type);
         $response->headers->set('Content-Disposition', $disposition . '; filename="' . $file->original_name . '"');
         $response->headers->set('Content-Length', (string) $length);
         $response->headers->set('Accept-Ranges', 'bytes');
-        
+
         // Set range headers if this is a partial content request
         if ($request->hasHeader('Range')) {
             $response->setStatusCode(206); // Partial Content
             $response->headers->set('Content-Range', "bytes {$start}-{$end}/{$fileSize}");
         }
-        
+
         // Add cache headers for media files
         if ($this->isMediaFile($file->mime_type)) {
             $response->headers->set('Cache-Control', 'public, max-age=3600');
@@ -259,12 +259,12 @@ class FileDownloadController extends Controller
             $response->headers->set('Cache-Control', 'no-cache, must-revalidate');
             $response->headers->set('Expires', 'Sat, 26 Jul 1997 05:00:00 GMT');
         }
-        
+
         // Add privacy headers
         foreach ($this->privacyManager->getGDPRHeaders() as $header => $value) {
             $response->headers->set($header, $value);
         }
-        
+
         return $response;
     }
 
@@ -309,19 +309,19 @@ class FileDownloadController extends Controller
         if (str_starts_with($mimeType, 'image/')) {
             return "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'";
         }
-        
+
         if (str_starts_with($mimeType, 'video/') || str_starts_with($mimeType, 'audio/')) {
             return "default-src 'none'; media-src 'self'; style-src 'unsafe-inline'";
         }
-        
+
         if ($mimeType === 'application/pdf') {
             return "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'";
         }
-        
+
         if (str_starts_with($mimeType, 'text/')) {
             return "default-src 'none'; style-src 'unsafe-inline'";
         }
-        
+
         // Default restrictive CSP
         return "default-src 'none'";
     }
@@ -334,15 +334,15 @@ class FileDownloadController extends Controller
         if (!file_exists($filePath)) {
             return false;
         }
-        
+
         if (!is_readable($filePath)) {
             return false;
         }
-        
+
         // Additional security check: ensure file is within allowed directory
         $realPath = realpath($filePath);
         $allowedPath = realpath(Storage::disk('public')->path('files'));
-        
+
         return $realPath && $allowedPath && str_starts_with($realPath, $allowedPath);
     }
 

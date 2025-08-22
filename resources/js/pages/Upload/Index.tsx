@@ -49,7 +49,7 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
 
     return (
         <Layout>
-            <Head title="Upload Files - Fucking File Hosting" />
+            <Head title="Fucking File" />
 
             <div className="container mx-auto px-4 py-8">
                 {/* Hero Section */}
@@ -70,6 +70,7 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                         onUploadComplete={handleUploadComplete}
                         onUploadError={handleUploadError}
                         maxFileSize={maxFileSize}
+                        defaultExpirationDays={1}
                         multiple={true}
                         className="mx-auto max-w-4xl"
                     />

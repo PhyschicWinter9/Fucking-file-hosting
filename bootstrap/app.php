@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
+            \App\Http\Middleware\CheckSetupMiddleware::class,
             \App\Http\Middleware\PrivacyProtectionMiddleware::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
@@ -40,6 +41,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Add privacy protection to API routes
         $middleware->api(append: [
             \App\Http\Middleware\PrivacyProtectionMiddleware::class,
+        ]);
+
+        // Register custom rate limiting middleware
+        $middleware->alias([
+            'rate.limit' => \App\Http\Middleware\RateLimitMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

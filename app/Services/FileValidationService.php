@@ -3,20 +3,21 @@
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 
 class FileValidationService
 {
     /**
-     * Maximum file size in bytes (10GB).
+     * Get maximum file size from config.
      */
-    private const MAX_FILE_SIZE = 10737418240;
+    private function getMaxFileSizeFromConfig(): int
+    {
+        return config('filehosting.max_file_size', 104857600); // Default 100MB
+    }
 
     /**
      * Dangerous file extensions that should be blocked.
      */
-    private const DANGEROUS_EXTENSIONS = [
+    private const array DANGEROUS_EXTENSIONS = [
         'exe', 'bat', 'cmd', 'com', 'pif', 'scr', 'vbs', 'js', 'jar',
         'php', 'php3', 'php4', 'php5', 'phtml', 'asp', 'aspx', 'jsp',
         'sh', 'bash', 'csh', 'ksh', 'zsh', 'pl', 'py', 'rb', 'ps1',
@@ -26,7 +27,7 @@ class FileValidationService
     /**
      * Dangerous MIME types that should be blocked.
      */
-    private const DANGEROUS_MIME_TYPES = [
+    private const array DANGEROUS_MIME_TYPES = [
         'application/x-executable',
         'application/x-msdownload',
         'application/x-msdos-program',
@@ -45,7 +46,7 @@ class FileValidationService
 
     /**
      * Validate uploaded file comprehensively.
-     * 
+     *
      * Requirements: 1.6, 2.5, 7.7 - File size validation, MIME validation, security checks
      */
     public function validateFile(UploadedFile $file): array
@@ -92,7 +93,7 @@ class FileValidationService
 
     /**
      * Validate file size against 10GB limit.
-     * 
+     *
      * Requirements: 1.6 - File size validation (10GB limit)
      */
     public function validateFileSize(UploadedFile $file): array
@@ -109,16 +110,18 @@ class FileValidationService
             ];
         }
 
-        if ($fileSize > self::MAX_FILE_SIZE) {
+        $maxFileSize = $this->getMaxFileSizeFromConfig();
+
+        if ($fileSize > $maxFileSize) {
             return [
                 'valid' => false,
                 'error' => [
                     'code' => 'FILE_TOO_LARGE',
-                    'message' => 'File size exceeds 10GB limit',
+                    'message' => 'File size exceeds maximum limit',
                     'details' => [
-                        'max_size' => self::MAX_FILE_SIZE,
+                        'max_size' => $maxFileSize,
                         'file_size' => $fileSize,
-                        'max_size_human' => $this->formatBytes(self::MAX_FILE_SIZE),
+                        'max_size_human' => $this->formatBytes($maxFileSize),
                         'file_size_human' => $this->formatBytes($fileSize),
                     ]
                 ]
@@ -140,7 +143,7 @@ class FileValidationService
 
     /**
      * Validate file extension for security.
-     * 
+     *
      * Requirements: 7.7 - File extension security checks
      */
     public function validateFileExtension(UploadedFile $file): array
@@ -197,7 +200,7 @@ class FileValidationService
 
     /**
      * Validate and sanitize MIME type.
-     * 
+     *
      * Requirements: 2.5, 7.7 - MIME type validation and sanitization
      */
     public function validateMimeType(UploadedFile $file): array
@@ -206,7 +209,7 @@ class FileValidationService
         $detectedMime = $this->detectMimeType($file);
 
         // Check for dangerous MIME types
-        if (in_array($reportedMime, self::DANGEROUS_MIME_TYPES) || 
+        if (in_array($reportedMime, self::DANGEROUS_MIME_TYPES) ||
             in_array($detectedMime, self::DANGEROUS_MIME_TYPES)) {
             return [
                 'valid' => false,
@@ -247,7 +250,7 @@ class FileValidationService
     public function validateFileContent(UploadedFile $file): array
     {
         $filePath = $file->getRealPath();
-        
+
         // Read first 1KB of file for analysis
         $handle = fopen($filePath, 'rb');
         if (!$handle) {
@@ -331,14 +334,14 @@ class FileValidationService
         }
 
         return ['valid' => true];
-    } 
+    }
    /**
      * Detect actual MIME type using file content.
      */
     private function detectMimeType(UploadedFile $file): string
     {
         $filePath = $file->getRealPath();
-        
+
         // Use finfo to detect MIME type from content
         if (function_exists('finfo_open')) {
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -395,7 +398,7 @@ class FileValidationService
             'image/jpg' => ['image/jpeg'],
         ];
 
-        if (isset($allowedMismatches[$reported]) && 
+        if (isset($allowedMismatches[$reported]) &&
             in_array($detected, $allowedMismatches[$reported])) {
             return false;
         }
@@ -500,21 +503,21 @@ class FileValidationService
     {
         // Remove path information
         $filename = basename($filename);
-        
+
         // Remove null bytes
         $filename = str_replace("\0", '', $filename);
-        
+
         // Replace dangerous characters
         $filename = preg_replace('/[<>:"|?*]/', '_', $filename);
-        
+
         // Remove leading/trailing dots and spaces
         $filename = trim($filename, '. ');
-        
+
         // Ensure filename is not empty
         if (empty($filename)) {
             $filename = 'unnamed_file';
         }
-        
+
         // Limit length
         if (strlen($filename) > 255) {
             $extension = pathinfo($filename, PATHINFO_EXTENSION);
@@ -522,7 +525,7 @@ class FileValidationService
             $maxNameLength = 255 - strlen($extension) - 1;
             $filename = substr($name, 0, $maxNameLength) . '.' . $extension;
         }
-        
+
         return $filename;
     }
 
@@ -532,11 +535,11 @@ class FileValidationService
     private function formatBytes(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        
+
         for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
             $bytes /= 1024;
         }
-        
+
         return round($bytes, 2) . ' ' . $units[$i];
     }
 
@@ -590,7 +593,7 @@ class FileValidationService
      */
     public function getMaxFileSize(): int
     {
-        return self::MAX_FILE_SIZE;
+        return $this->getMaxFileSizeFromConfig();
     }
 
     /**

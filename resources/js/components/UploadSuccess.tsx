@@ -30,6 +30,8 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
     const [copiedUrls, setCopiedUrls] = useState<Set<string>>(new Set());
     const { toast } = useToast();
 
+    console.log('UploadSuccess received files:', files);
+
     // Format file size
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -59,7 +61,7 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
                     return newSet;
                 });
             }, 3000);
-        } catch (error) {
+        } catch {
             toast({
                 title: 'Copy Failed',
                 description: 'Failed to copy to clipboard',
@@ -77,7 +79,7 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
                     text: `Download ${file.originalName} from Fucking File Hosting`,
                     url: file.downloadUrl,
                 });
-            } catch (error) {
+            } catch {
                 // Fallback to clipboard
                 await copyToClipboard(file.downloadUrl, file.originalName);
             }
@@ -126,7 +128,7 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
 
             {/* Files List */}
             <div className="space-y-4">
-                {files.map((file, index) => (
+                {files.map((file) => (
                     <Card key={file.fileId} className="p-6">
                         <div className="space-y-4">
                             {/* File Header */}
@@ -171,7 +173,10 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
                             {/* Action Buttons */}
                             <div className="flex flex-wrap gap-2">
                                 {/* Direct Download */}
-                                <Button onClick={() => window.open(file.downloadUrl, '_blank')} className="flex-1 sm:flex-none">
+                                <Button
+                                    onClick={() => window.open(file.downloadUrl, '_blank')}
+                                    className="flex-1 bg-green-400 shadow-sm hover:bg-green-500 sm:flex-none"
+                                >
                                     <Download className="mr-2 h-4 w-4" />
                                     Download
                                 </Button>
@@ -205,23 +210,25 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
                             <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                                 <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
                                     <div className="flex items-start space-x-2">
-                                        <Download className="mt-0.5 h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                        <Download className="mt-0.5 h-4 w-4 text-black" />
                                         <div>
-                                            <p className="font-medium text-blue-800 dark:text-blue-200">Download Manager Support</p>
-                                            <p className="text-blue-700 dark:text-blue-300">
-                                                Works with IDM, JDownloader, and other download managers.
-                                            </p>
+                                            <p className="font-medium text-black">Download Manager Support</p>
+                                            <p className="text-black">Works with IDM, JDownloader, and other download managers.</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {file.expiresAt && (
-                                    <div className="rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
+                                    <div className="rounded-lg bg-red-400 p-3 dark:bg-red-900/20">
                                         <div className="flex items-start space-x-2">
-                                            <ExternalLink className="mt-0.5 h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                            <ExternalLink className="mt-0.5 h-4 w-4 text-black" />
                                             <div>
-                                                <p className="font-medium text-amber-800 dark:text-amber-200">Expires</p>
-                                                <p className="text-amber-700 dark:text-amber-300">{new Date(file.expiresAt).toLocaleDateString()}</p>
+                                                <p className="font-medium text-black">Expires</p>
+                                                {/* <p className="text-red-600">{new Date(file.expiresAt).toLocaleDateString()}</p> */}
+                                                <p className="text-black">
+                                                    This file will expire on {new Date(file.expiresAt).toLocaleDateString()} at{' '}
+                                                    {new Date(file.expiresAt).toLocaleTimeString()}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -249,7 +256,7 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
             {/* Upload Another File */}
             <Card className="p-6 text-center">
                 <h3 className="mb-3 text-lg font-semibold">Upload Another File?</h3>
-                <p className="mb-4 text-muted-foreground">Upload more files up to 100MB with zero registration and complete privacy.</p>
+                <p className="mb-4 text-muted-foreground">Upload more files with zero registration and complete privacy.</p>
                 <Button onClick={onNewUpload} variant="outline">
                     <File className="mr-2 h-4 w-4" />
                     Upload New File

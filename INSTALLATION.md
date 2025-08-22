@@ -1,0 +1,345 @@
+# Fast File Hosting - Installation Guide
+
+This guide will help you install and set up your Fast File Hosting application on both shared hosting and VPS environments.
+
+## System Requirements
+
+### PHP Requirements
+
+- PHP 8.2 or higher
+- Required PHP extensions:
+    - PDO (for database)
+    - OpenSSL
+    - Mbstring
+    - Tokenizer
+    - XML
+    - Ctype
+    - JSON
+    - BCMath
+    - Fileinfo
+    - GD (recommended)
+    - cURL
+
+### Database Support
+
+- **SQLite** (recommended for shared hosting)
+- **MySQL 5.7+** or **MariaDB 10.3+**
+
+### Server Requirements
+
+- Web server (Apache/Nginx)
+- Minimum 512MB RAM
+- 1GB+ disk space
+
+## Installation Methods
+
+### Method 1: Web Setup Wizard (Recommended)
+
+1. **Upload Files**
+    - Download the application files
+    - Upload all files to your web server's public directory
+    - Ensure proper file permissions (755 for directories, 644 for files)
+
+2. **Set Permissions**
+
+    ```bash
+    chmod -R 755 storage/
+    chmod -R 755 bootstrap/cache/
+    chmod 644 .env.example
+    ```
+
+3. **Access Setup Wizard**
+    - Navigate to `https://yourdomain.com/setup`
+    - The setup wizard will guide you through the configuration
+
+4. **Follow Setup Steps**
+    - **System Requirements**: Check if your server meets all requirements
+    - **Database Configuration**: Choose and configure your database
+    - **Basic Settings**: Set application name, URL, and environment
+    - **Upload Settings**: Configure file size limits and storage
+    - **Privacy & Security**: Set privacy mode and rate limiting
+    - **Admin Account**: Create your administrator account
+    - **Complete Setup**: Review and apply configuration
+
+### Method 2: Manual Installation
+
+1. **Environment Configuration**
+
+    ```bash
+    cp .env.example .env
+    ```
+
+2. **Edit .env file**
+
+    ```env
+    APP_NAME="Your File Hosting"
+    APP_ENV=production
+    APP_DEBUG=false
+    APP_URL=https://yourdomain.com
+
+    # Database Configuration
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=your_database
+    DB_USERNAME=your_username
+    DB_PASSWORD=your_password
+
+    # File Configuration
+    MAX_FILE_SIZE_MB=100
+    DEFAULT_EXPIRATION_DAYS=1
+    MAX_EXPIRATION_DAYS=30
+    ```
+
+3. **Generate Application Key**
+
+    ```bash
+    php artisan key:generate
+    ```
+
+4. **Run Migrations**
+
+    ```bash
+    php artisan migrate
+    ```
+
+5. **Create Storage Link**
+
+    ```bash
+    php artisan storage:link
+    ```
+
+6. **Create Admin User**
+    ```bash
+    php artisan tinker
+    User::create([
+        'name' => 'Admin',
+        'email' => 'admin@yourdomain.com',
+        'password' => bcrypt('your-password'),
+        'email_verified_at' => now(),
+    ]);
+    ```
+
+## Database Configuration
+
+### SQLite (Recommended for Shared Hosting)
+
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+```
+
+### MySQL
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=filehosting
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+```
+
+## Shared Hosting Setup
+
+### cPanel Instructions
+
+1. **Upload Files**
+    - Extract files to `public_html` directory
+    - Ensure `.htaccess` file is uploaded
+
+2. **Database Setup**
+    - Create MySQL database through cPanel
+    - Create database user and assign privileges
+    - Note database credentials for setup
+
+3. **File Permissions**
+    - Set `storage/` and `bootstrap/cache/` to 755
+    - Ensure `.env` file is writable (644)
+
+4. **PHP Configuration**
+    - Check PHP version (8.2+ required)
+    - Verify required extensions are enabled
+    - Adjust upload limits if needed:
+        ```
+        upload_max_filesize = 100M
+        post_max_size = 100M
+        max_execution_time = 300
+        memory_limit = 512M
+        ```
+
+5. **Run Setup**
+    - Visit `https://yourdomain.com/setup`
+    - Follow the setup wizard
+
+### Common Shared Hosting Issues
+
+**Issue: 500 Internal Server Error**
+
+- Check file permissions
+- Verify `.htaccess` file exists
+- Check error logs in cPanel
+
+**Issue: Database Connection Failed**
+
+- Verify database credentials
+- Ensure database user has proper privileges
+- Check database host (often not localhost on shared hosting)
+
+**Issue: File Upload Limits**
+
+- Contact hosting provider to increase limits
+- Or adjust application limits to match hosting limits
+
+## VPS/Dedicated Server Setup
+
+### Ubuntu/Debian
+
+1. **Install Dependencies**
+
+    ```bash
+    sudo apt update
+    sudo apt install php8.2 php8.2-cli php8.2-fpm php8.2-mysql php8.2-sqlite3 php8.2-mbstring php8.2-xml php8.2-curl php8.2-gd php8.2-bcmath
+    ```
+
+2. **Install Composer**
+
+    ```bash
+    curl -sS https://getcomposer.org/installer | php
+    sudo mv composer.phar /usr/local/bin/composer
+    ```
+
+3. **Install Dependencies**
+
+    ```bash
+    composer install --optimize-autoloader --no-dev
+    ```
+
+4. **Configure Web Server**
+    - Point document root to `public/` directory
+    - Ensure proper rewrite rules are configured
+
+5. **Set Permissions**
+    ```bash
+    sudo chown -R www-data:www-data storage bootstrap/cache
+    sudo chmod -R 755 storage bootstrap/cache
+    ```
+
+### CentOS/RHEL
+
+1. **Install Dependencies**
+
+    ```bash
+    sudo yum install php php-cli php-fpm php-mysql php-mbstring php-xml php-curl php-gd php-bcmath
+    ```
+
+2. **Follow similar steps as Ubuntu**
+
+## Post-Installation
+
+### Security Checklist
+
+1. **Environment File**
+    - Ensure `.env` is not publicly accessible
+    - Set `APP_DEBUG=false` in production
+    - Use strong `APP_KEY`
+
+2. **File Permissions**
+    - Storage directories: 755
+    - Configuration files: 644
+    - Never set 777 permissions
+
+3. **Database Security**
+    - Use strong database passwords
+    - Limit database user privileges
+    - Regular backups
+
+4. **Web Server Security**
+    - Enable HTTPS
+    - Configure security headers
+    - Regular updates
+
+### Performance Optimization
+
+1. **Caching**
+
+    ```bash
+    php artisan config:cache
+    php artisan route:cache
+    php artisan view:cache
+    ```
+
+2. **OPcache**
+    - Enable PHP OPcache
+    - Configure appropriate settings
+
+3. **File Storage**
+    - Consider CDN for large files
+    - Regular cleanup of expired files
+
+### Maintenance
+
+1. **Regular Tasks**
+    - Monitor disk usage
+    - Clean expired files
+    - Update application
+    - Backup database
+
+2. **Monitoring**
+    - Set up log monitoring
+    - Monitor upload/download rates
+    - Check system resources
+
+## Troubleshooting
+
+### Common Issues
+
+**Setup wizard not accessible**
+
+- Check web server configuration
+- Verify file permissions
+- Check error logs
+
+**Database connection errors**
+
+- Verify credentials
+- Check database server status
+- Ensure proper privileges
+
+**File upload failures**
+
+- Check PHP upload limits
+- Verify storage permissions
+- Monitor disk space
+
+**Performance issues**
+
+- Enable caching
+- Check server resources
+- Optimize database queries
+
+### Getting Help
+
+1. Check error logs first
+2. Verify system requirements
+3. Review configuration files
+4. Test with minimal configuration
+
+## Updating
+
+### Web Interface Update
+
+1. Backup your database and files
+2. Upload new application files
+3. Visit `/setup` to run any necessary updates
+
+### Manual Update
+
+1. Backup everything
+2. Upload new files
+3. Run migrations: `php artisan migrate`
+4. Clear caches: `php artisan config:clear`
+
+---
+
+For additional support and documentation, visit the project repository or contact support.
