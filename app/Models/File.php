@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Carbon\Carbon;
 
 class File extends Model
 {
@@ -19,6 +17,7 @@ class File extends Model
         'file_size',
         'checksum',
         'expires_at',
+        'delete_token',
     ];
 
     /**
@@ -52,9 +51,46 @@ class File extends Model
     /**
      * Get the preview URL for the file.
      */
-    public function getPreviewUrl(): string
+    public function getPreviewUrl(): ?string
     {
-        return route('file.preview', ['fileId' => $this->file_id]);
+        // Only return preview URL for previewable files
+        if ($this->isPreviewable()) {
+            return route('file.preview', ['fileId' => $this->file_id]);
+        }
+        return null;
+    }
+
+    /**
+     * Get the file info page URL.
+     */
+    public function getInfoUrl(): string
+    {
+        return route('file.show', ['fileId' => $this->file_id]);
+    }
+
+    /**
+     * Check if file can be previewed inline.
+     */
+    public function isPreviewable(): bool
+    {
+        $previewableMimes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+            'application/pdf',
+            'text/plain', 'text/html', 'text/css', 'text/javascript',
+            'application/json', 'application/xml', 'text/xml',
+            'video/mp4', 'video/webm', 'video/ogg',
+            'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4'
+        ];
+
+        return in_array($this->mime_type, $previewableMimes);
+    }
+
+    /**
+     * Check if the owner can delete this file.
+     */
+    public function canDelete(): bool
+    {
+        return config('filehosting.allow_owner_delete', true) && !empty($this->delete_token);
     }
 
     /**

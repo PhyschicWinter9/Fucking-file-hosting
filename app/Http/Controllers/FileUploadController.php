@@ -132,10 +132,12 @@ class FileUploadController extends Controller
                     'mime_type' => $fileModel->mime_type,
                     'download_url' => $fileModel->getDownloadUrl(),
                     'preview_url' => $fileModel->getPreviewUrl(),
+                    'info_url' => $fileModel->getInfoUrl(),
                     'expires_at' => $fileModel->expires_at?->toISOString(),
                     'created_at' => $fileModel->created_at->toISOString(),
                     'is_duplicate' => $isDuplicate,
                     'space_saved' => $isDuplicate ? $duplicateCheck['space_saved'] ?? 0 : 0,
+                    'delete_token' => $fileModel->delete_token,
                 ]
             ]);
 
@@ -255,8 +257,10 @@ class FileUploadController extends Controller
                     'mime_type' => $fileModel->mime_type,
                     'download_url' => $fileModel->getDownloadUrl(),
                     'preview_url' => $fileModel->getPreviewUrl(),
+                    'info_url' => $fileModel->getInfoUrl(),
                     'expires_at' => $fileModel->expires_at?->toISOString(),
                     'created_at' => $fileModel->created_at->toISOString(),
+                    'delete_token' => $fileModel->delete_token,
                 ]
             ]);
 
@@ -293,13 +297,16 @@ class FileUploadController extends Controller
                 'file_id' => $file->file_id,
                 'original_name' => $file->original_name,
                 'file_size' => $file->file_size,
-                'human_size' => $file->getHumanFileSize(),
+                'human_file_size' => $file->getHumanFileSize(),
                 'mime_type' => $file->mime_type,
                 'download_url' => $file->getDownloadUrl(),
                 'preview_url' => $file->getPreviewUrl(),
+                'info_url' => $file->getInfoUrl(),
                 'expires_at' => $file->expires_at?->toISOString(),
+                'is_expired' => $file->isExpired(),
                 'created_at' => $file->created_at->toISOString(),
-                'is_previewable' => $this->isPreviewable($file->mime_type),
+                'can_delete' => $file->canDelete(),
+                'delete_token' => $file->delete_token,
             ]
         ]);
     }
@@ -538,6 +545,20 @@ class FileUploadController extends Controller
                 ]
             ], 500);
         }
+    }
+
+    /**
+     * Display API documentation page.
+     */
+    public function apiDocs(): Response
+    {
+        // Apply privacy protection
+        $this->privacyManager->preventLogging();
+
+        return Inertia::render('Docs/Api', [
+            'maxFileSize' => $this->getMaxFileSize(),
+            'chunkThreshold' => 26214400, // 25MB threshold for chunked uploads
+        ]);
     }
 
     /**

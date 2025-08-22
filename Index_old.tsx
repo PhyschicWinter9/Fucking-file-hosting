@@ -8,10 +8,10 @@ import { CheckCircle, Lock, Zap } from 'lucide-react';
 import { useState } from 'react';
 
 interface UploadIndexProps {
-    maxFileSize?: number;
+    // Add any props passed from Laravel controller here
 }
 
-export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadIndexProps) {
+export default function UploadIndex({}: UploadIndexProps) {
     const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
     const { toast } = useToast();
 
@@ -39,14 +39,6 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
         });
     };
 
-    const formatFileSize = (bytes: number): string => {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
-
     return (
         <Layout>
             <Head title="Upload Files - Fucking File Hosting" />
@@ -58,8 +50,8 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                         <span className="gradient-primary-text">Fucking</span> File Hosting
                     </h1>
                     <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground md:text-xl">
-                        Upload files up to {formatFileSize(maxFileSize)} instantly. No registration, no tracking, no bullshit. Just blazing fast file
-                        sharing with complete privacy and download manager support.
+                        Upload files up to 100MB instantly. No registration, no tracking, no bullshit. Just blazing fast file sharing with complete
+                        privacy and download manager support.
                     </p>
                 </div>
 
@@ -69,7 +61,7 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                         onUploadStart={handleUploadStart}
                         onUploadComplete={handleUploadComplete}
                         onUploadError={handleUploadError}
-                        maxFileSize={maxFileSize}
+                        maxFileSize={100 * 1024 * 1024} // 100MB (Cloudflare free plan limit)
                         multiple={true}
                         className="mx-auto max-w-4xl"
                     />
@@ -104,7 +96,7 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Max File Size:</span>
-                                        <span className="font-semibold text-primary">{formatFileSize(maxFileSize)}</span>
+                                        <span className="font-semibold text-primary">100MB</span>
                                     </div>
                                 </div>
                             </Card>
@@ -180,7 +172,7 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                                     <code className="text-sm">
                                         curl -X POST \<br />
                                         &nbsp;&nbsp;-F "file=@example.pdf" \<br />
-                                        &nbsp;&nbsp;{typeof window !== 'undefined' ? window.location.origin : ''}/api/upload
+                                        &nbsp;&nbsp;{window.location.origin}/api/upload
                                     </code>
                                 </div>
                                 <p className="mt-4 text-sm text-muted-foreground">
@@ -194,7 +186,7 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                                 <div className="rounded-lg bg-secondary p-4">
                                     <code className="text-sm">
                                         curl -O \<br />
-                                        &nbsp;&nbsp;{typeof window !== 'undefined' ? window.location.origin : ''}/f/[file_id]
+                                        &nbsp;&nbsp;{window.location.origin}/f/[file_id]
                                     </code>
                                 </div>
                                 <p className="mt-4 text-sm text-muted-foreground">Direct download with proper headers and range request support.</p>
@@ -203,7 +195,7 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
 
                         <div className="mt-8 text-center">
                             <Button variant="outline" asChild>
-                                <a href="/docs/api" target="_blank" rel="noopener noreferrer">
+                                <a href="/api/docs" target="_blank" rel="noopener noreferrer">
                                     View Full API Documentation
                                 </a>
                             </Button>
@@ -223,7 +215,7 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                                             <div>
                                                 <p className="font-medium">File ID: {fileId}</p>
                                                 <p className="text-sm text-muted-foreground">
-                                                    Download URL: {typeof window !== 'undefined' ? window.location.origin : ''}/f/{fileId}
+                                                    Download URL: {window.location.origin}/f/{fileId}
                                                 </p>
                                             </div>
                                             <Button variant="outline" asChild>

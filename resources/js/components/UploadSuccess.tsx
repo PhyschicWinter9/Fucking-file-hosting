@@ -11,10 +11,13 @@ interface UploadedFile {
     originalName: string;
     downloadUrl: string;
     previewUrl?: string;
+    infoUrl?: string;
     fileSize: number;
     mimeType: string;
     isDuplicate?: boolean;
     spaceSaved?: number;
+    deleteToken?: string;
+    expiresAt?: string;
 }
 
 interface UploadSuccessProps {
@@ -190,26 +193,53 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
                                 {/* File Details Page */}
                                 <Button
                                     variant="outline"
-                                    onClick={() => window.open(`/file/${file.fileId}`, '_blank')}
+                                    onClick={() => window.open(file.infoUrl || `/file/${file.fileId}`, '_blank')}
                                     className="flex-1 sm:flex-none"
                                 >
                                     <ExternalLink className="mr-2 h-4 w-4" />
-                                    Details
+                                    File Info
                                 </Button>
                             </div>
 
-                            {/* Download Manager Support Notice */}
-                            <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
-                                <div className="flex items-start space-x-2">
-                                    <Download className="mt-0.5 h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                    <div className="text-sm">
-                                        <p className="font-medium text-blue-800 dark:text-blue-200">Download Manager Support</p>
-                                        <p className="text-blue-700 dark:text-blue-300">
-                                            This link works with IDM, JDownloader, and other download managers. Right-click and "Copy Link" to use
-                                            with your preferred download tool.
-                                        </p>
+                            {/* File Information */}
+                            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+                                <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
+                                    <div className="flex items-start space-x-2">
+                                        <Download className="mt-0.5 h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                        <div>
+                                            <p className="font-medium text-blue-800 dark:text-blue-200">Download Manager Support</p>
+                                            <p className="text-blue-700 dark:text-blue-300">
+                                                Works with IDM, JDownloader, and other download managers.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {file.expiresAt && (
+                                    <div className="rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
+                                        <div className="flex items-start space-x-2">
+                                            <ExternalLink className="mt-0.5 h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                            <div>
+                                                <p className="font-medium text-amber-800 dark:text-amber-200">Expires</p>
+                                                <p className="text-amber-700 dark:text-amber-300">{new Date(file.expiresAt).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {file.deleteToken && (
+                                    <div className="rounded-lg bg-red-50 p-3 sm:col-span-2 dark:bg-red-900/20">
+                                        <div className="flex items-start space-x-2">
+                                            <ExternalLink className="mt-0.5 h-4 w-4 text-red-600 dark:text-red-400" />
+                                            <div>
+                                                <p className="font-medium text-red-800 dark:text-red-200">Owner Controls</p>
+                                                <p className="text-red-700 dark:text-red-300">
+                                                    You can delete this file anytime from the file info page. Keep this link safe!
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </Card>

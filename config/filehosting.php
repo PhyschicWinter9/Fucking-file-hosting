@@ -11,8 +11,10 @@ return [
     |
     */
 
-    'max_file_size' => env('MAX_FILE_SIZE', 104857600), // 100MB in bytes (Cloudflare free plan limit)
+    'max_file_size' => env('MAX_FILE_SIZE', (int)(env('MAX_FILE_SIZE_MB', 100) * 1024 * 1024)), // Configurable via MB setting
+    'max_file_size_mb' => env('MAX_FILE_SIZE_MB', 100), // Maximum file size in MB (configurable)
     'chunk_size' => env('CHUNK_SIZE', 2097152), // 2MB in bytes (Cloudflare compatibility)
+    'bypass_cloudflare' => env('BYPASS_CLOUDFLARE', false), // Enable direct server uploads to bypass Cloudflare limits
     'files_storage_path' => env('FILES_STORAGE_PATH', 'files'),
     'cleanup_expired_files' => env('CLEANUP_EXPIRED_FILES', true),
 
@@ -55,6 +57,20 @@ return [
     'default_expiration_days' => env('DEFAULT_EXPIRATION_DAYS', 30),
     'max_expiration_days' => env('MAX_EXPIRATION_DAYS', 365),
     'allow_permanent_files' => env('ALLOW_PERMANENT_FILES', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | File Management Settings
+    |--------------------------------------------------------------------------
+    |
+    | Settings for file management and owner controls.
+    |
+    */
+
+    'allow_owner_delete' => env('ALLOW_OWNER_DELETE', true),
+    'show_download_links' => env('SHOW_DOWNLOAD_LINKS', true),
+    'enable_file_info_page' => env('ENABLE_FILE_INFO_PAGE', true),
+    'generate_delete_tokens' => env('GENERATE_DELETE_TOKENS', true),
 
     /*
     |--------------------------------------------------------------------------
