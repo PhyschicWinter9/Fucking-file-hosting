@@ -45,38 +45,42 @@ export default function ApiDocs({ maxFileSize, chunkThreshold }: ApiDocsProps) {
             <div className="min-h-screen bg-background">
                 {/* Header */}
                 <header className="border-b border-border/40 bg-background/95 backdrop-blur">
-                    <div className="container mx-auto px-4 py-4">
+                    <div className="container mx-auto px-4 py-3 sm:py-4">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2 sm:space-x-4">
                                 <Button variant="ghost" size="sm" asChild>
-                                    <a href="/">
-                                        <ArrowLeft className="mr-2 h-4 w-4" />
-                                        Back to Upload
+                                    <a href="/" className="flex items-center">
+                                        <ArrowLeft className="mr-1 h-4 w-4 sm:mr-2" />
+                                        <span className="hidden sm:inline">Back to Upload</span>
+                                        <span className="sm:hidden">Back</span>
                                     </a>
                                 </Button>
-                                <div className="flex items-center space-x-2">
-                                    <Code className="h-6 w-6 text-primary" />
-                                    <span className="text-xl font-bold">Fucking File API</span>
+                                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                                    <Code className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                                    <span className="text-lg font-bold sm:text-xl">
+                                        <span className="hidden sm:inline">Fucking File API</span>
+                                        <span className="sm:hidden">API</span>
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <main className="container mx-auto px-4 py-8">
-                    <div className="mx-auto max-w-4xl space-y-8">
+                <main className="container mx-auto px-4 py-6 sm:py-8">
+                    <div className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
                         {/* Introduction */}
                         <div className="text-center">
-                            <h1 className="mb-4 text-4xl font-bold">
+                            <h1 className="mb-3 text-2xl font-bold sm:mb-4 sm:text-3xl lg:text-4xl">
                                 <span className="gradient-primary-text">Fucking</span> File API Documentation
                             </h1>
-                            <p className="mb-6 text-lg text-muted-foreground">
+                            <p className="mb-4 text-base text-muted-foreground sm:mb-6 sm:text-lg">
                                 RESTful API for blazing fast file hosting. No authentication, no bullshit.
                             </p>
-                            <div className="flex justify-center space-x-4">
-                                <Badge variant="secondary">REST API</Badge>
-                                <Badge variant="secondary">No Auth Required</Badge>
-                                <Badge variant="secondary">JSON Responses</Badge>
+                            <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
+                                <Badge variant="secondary" className="text-xs sm:text-sm">REST API</Badge>
+                                <Badge variant="secondary" className="text-xs sm:text-sm">No Auth Required</Badge>
+                                <Badge variant="secondary" className="text-xs sm:text-sm">JSON Responses</Badge>
                             </div>
                         </div>
 

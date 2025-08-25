@@ -17,6 +17,42 @@
         justify-content: center;
     }
     
+    /* Better mobile spacing */
+    .container-responsive {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    /* Improved mobile cards */
+    .card-interactive {
+        transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .card-interactive:active {
+        transform: scale(0.98);
+    }
+    
+    /* Better mobile upload zone */
+    .upload-zone {
+        min-height: 300px;
+    }
+    
+    /* Mobile-optimized text sizes */
+    .text-responsive-xl {
+        font-size: clamp(1.75rem, 5vw, 3rem);
+        line-height: 1.1;
+    }
+    
+    .text-responsive-lg {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        line-height: 1.2;
+    }
+    
+    .text-responsive-md {
+        font-size: clamp(1rem, 3vw, 1.5rem);
+        line-height: 1.4;
+    }
+    
     /* Prevent zoom on input focus */
     input[type="text"],
     input[type="email"],

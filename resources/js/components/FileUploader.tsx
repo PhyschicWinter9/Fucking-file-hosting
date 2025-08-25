@@ -3,8 +3,8 @@ import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
 import { FileValidation, UploadProgress } from '@/types/upload';
-import { Clock, Copy, File, Upload, X } from 'lucide-react';
-import React, { useCallback, useRef, useState } from 'react';
+import { Clock, Copy, File, LoaderCircle, Upload, X } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ProgressBar from './ProgressBar';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -81,6 +81,19 @@ const FileUploader: React.FC<FileUploaderProps> = ({
     const [completedFiles, setCompletedFiles] = useState<CompletedFile[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
+
+    // Monitor upload states and automatically reset uploading state
+    useEffect(() => {
+        if (uploadStates.length > 0) {
+            const hasActiveUploads = uploadStates.some((state) => state.status === 'uploading' || state.status === 'pending');
+
+            if (!hasActiveUploads && isUploading) {
+                setIsUploading(false);
+                setActiveUploads(0);
+                setUploadQueue([]);
+            }
+        }
+    }, [uploadStates, isUploading]);
 
     // Reset uploader for new upload
     const resetUploader = () => {
@@ -518,9 +531,20 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                     variant: 'destructive',
                 });
             } finally {
-                setIsUploading(false);
-                setActiveUploads(0);
-                setUploadQueue([]);
+                // Only reset if there are no active uploads remaining
+                setTimeout(() => {
+                    setUploadStates((currentStates) => {
+                        const hasActiveUploads = currentStates.some((state) => state.status === 'uploading' || state.status === 'pending');
+
+                        if (!hasActiveUploads) {
+                            setIsUploading(false);
+                            setActiveUploads(0);
+                            setUploadQueue([]);
+                        }
+
+                        return currentStates;
+                    });
+                }, 100);
             }
         },
         [disabled, isUploading, validateFiles, onUploadStart, onUploadError, toast, enableBulkMode, processBulkUploads, uploadFile, onUploadComplete],
@@ -529,11 +553,37 @@ const FileUploader: React.FC<FileUploaderProps> = ({
     // Cancel upload
     const cancelUpload = (index: number) => {
         setUploadStates((prev) => prev.map((state, i) => (i === index ? { ...state, status: 'cancelled' } : state)));
+
+        // Check if all uploads are cancelled or completed, then reset uploading state
+        setTimeout(() => {
+            setUploadStates((currentStates) => {
+                const hasActiveUploads = currentStates.some((state) => state.status === 'uploading' || state.status === 'pending');
+
+                if (!hasActiveUploads) {
+                    setIsUploading(false);
+                    setActiveUploads(0);
+                    setUploadQueue([]);
+                }
+
+                return currentStates;
+            });
+        }, 100);
     };
 
     // Remove file from list
     const removeFile = (index: number) => {
-        setUploadStates((prev) => prev.filter((_, i) => i !== index));
+        setUploadStates((prev) => {
+            const newStates = prev.filter((_, i) => i !== index);
+
+            // If no files left, reset uploading state
+            if (newStates.length === 0) {
+                setIsUploading(false);
+                setActiveUploads(0);
+                setUploadQueue([]);
+            }
+
+            return newStates;
+        });
     };
 
     // Bulk actions
@@ -541,6 +591,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         setUploadStates((prev) =>
             prev.map((state) => (state.status === 'uploading' || state.status === 'pending' ? { ...state, status: 'cancelled' as const } : state)),
         );
+        setIsUploading(false);
         setActiveUploads(0);
         setUploadQueue([]);
     };
@@ -640,14 +691,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         <div className={cn('w-full', className)}>
             {/* Main upload area */}
             <Card
-                className={cn(
-                    'upload-zone transition-all-smooth relative',
-                    'hover:border-primary/50 hover:bg-primary/5',
-                    isDragOver && 'drag-over scale-[1.02] border-primary bg-primary/10',
-                    disabled && 'cursor-not-allowed opacity-50',
-                    isUploading && 'pulse-glow cursor-not-allowed',
-                    !disabled && !isUploading && 'cursor-pointer',
-                )}
+                className={`relative transition-all duration-300 ease-in-out ${isDragOver ? 'scale-[1.02] border-primary bg-primary/5 shadow-lg' : 'hover:border-primary/50 hover:shadow-md'} ${disabled ? 'cursor-not-allowed opacity-50' : ''} ${isUploading ? 'cursor-not-allowed' : 'cursor-pointer'} `}
                 style={{
                     minHeight: 'clamp(400px, 50vh, 600px)',
                     cursor: disabled || isUploading ? 'not-allowed' : isDragOver ? 'grabbing' : 'pointer',
@@ -672,17 +716,17 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                         className={cn(
                             'mb-4 rounded-full p-4 transition-all duration-300 sm:mb-6 sm:p-6 lg:mb-8',
                             isDragOver ? 'pulse-glow scale-110 bg-primary text-primary-foreground' : 'bg-muted hover:scale-105 hover:bg-muted/80',
-                            isUploading && 'spinner',
+                            isUploading && uploadStates.some((state) => state.status === 'uploading' || state.status === 'pending') && 'spinner',
                         )}
                     >
-                        <Upload
-                            className={cn(
-                                'transition-all duration-300',
-                                'h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16',
-                                isDragOver && 'scale-110',
-                                isUploading && 'animate-pulse',
-                            )}
-                        />
+                        {isUploading ? (
+                            // Loading spinner
+                            <LoaderCircle className="h-8 w-8 animate-spin sm:h-12 sm:w-12 lg:h-16 lg:w-16" />
+                        ) : (
+                            <Upload
+                                className={cn('transition-all duration-300', 'h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16', isDragOver && 'scale-110')}
+                            />
+                        )}
                     </div>
 
                     <h3
@@ -771,7 +815,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                     )}
 
                     {/* Upload progress indicator */}
-                    {isUploading && (
+                    {isUploading && uploadStates.some((state) => state.status === 'uploading' || state.status === 'pending') && (
                         <div className="mt-4 w-full max-w-md">
                             <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
                                 <div className="spinner h-4 w-4 rounded-full border-2 border-primary border-t-transparent"></div>

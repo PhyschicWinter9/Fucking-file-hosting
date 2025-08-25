@@ -168,13 +168,13 @@ export default function FileShow({ file }: FileShowPageProps) {
             <div className="min-h-screen bg-background">
                 {/* Header */}
                 <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-                    <div className="container mx-auto px-4 py-4">
+                    <div className="container mx-auto px-4 py-3 sm:py-4">
                         <div className="flex items-center justify-between">
-                            <Link href="/" className="bg-gradient-primary bg-clip-text text-xl font-bold text-transparent sm:text-2xl">
+                            <Link href="/" className="bg-gradient-primary bg-clip-text text-lg font-bold text-transparent sm:text-xl lg:text-2xl">
                                 Fucking File
                             </Link>
                             <Link href="/">
-                                <Button variant="outline" size="sm" className="sm:size-default">
+                                <Button variant="outline" size="sm" className="text-xs sm:text-sm">
                                     <span className="hidden sm:inline">Upload New File</span>
                                     <span className="sm:hidden">Upload</span>
                                 </Button>
@@ -184,8 +184,8 @@ export default function FileShow({ file }: FileShowPageProps) {
                 </header>
 
                 {/* Main Content */}
-                <main className="container mx-auto px-4 py-8">
-                    <div className="mx-auto max-w-4xl space-y-6">
+                <main className="container mx-auto px-4 py-6 sm:py-8">
+                    <div className="mx-auto max-w-4xl space-y-4 sm:space-y-6">
                         {/* File Header */}
                         <Card>
                             <CardHeader>
@@ -227,16 +227,16 @@ export default function FileShow({ file }: FileShowPageProps) {
                         </Card>
 
                         {/* Action Buttons */}
-                        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-2 lg:grid-cols-4">
                             {/* Download Button */}
                             <Card
                                 className="cursor-pointer transition-shadow hover:shadow-lg"
                                 onClick={() => window.open(file.download_url, '_blank')}
                             >
-                                <CardContent className="p-6 text-center">
-                                    <Download className="mx-auto mb-2 h-8 w-8 text-primary" />
-                                    <h3 className="font-semibold">Download</h3>
-                                    <p className="text-sm text-muted-foreground">Download file</p>
+                                <CardContent className="p-3 text-center sm:p-4 lg:p-6">
+                                    <Download className="mx-auto mb-1.5 h-6 w-6 text-primary sm:mb-2 sm:h-8 sm:w-8" />
+                                    <h3 className="text-sm font-semibold sm:text-base">Download</h3>
+                                    <p className="text-xs text-muted-foreground sm:text-sm">Download file</p>
                                 </CardContent>
                             </Card>
 

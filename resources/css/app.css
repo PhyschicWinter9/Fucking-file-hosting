@@ -395,6 +395,48 @@
             transform: rotate(360deg);
         }
     }
+
+    /* Improved upload zone animations */
+    .upload-zone-enhanced {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-style: dashed;
+        border-width: 2px;
+        will-change: transform, border-color, background-color;
+    }
+    
+    .upload-zone-enhanced:hover {
+        border-color: rgb(var(--primary));
+        background-color: rgb(var(--primary) / 0.05);
+        transform: scale(1.005);
+    }
+    
+    .upload-zone-enhanced.drag-over {
+        border-color: rgb(var(--primary));
+        background-color: rgb(var(--primary) / 0.1);
+        transform: scale(1.01);
+        box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+    }
+
+    /* Better mobile touch feedback */
+    @media (hover: none) and (pointer: coarse) {
+        .card-interactive:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .card-interactive:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease-in-out;
+        }
+        
+        .btn-hover-scale:hover {
+            transform: none;
+        }
+        
+        .btn-hover-scale:active {
+            transform: scale(0.95);
+        }
+    }
 }
 
 /* Component styles */
