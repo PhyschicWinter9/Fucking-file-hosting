@@ -76,7 +76,7 @@ Options -Indexes -MultiViews +FollowSymLinks
 
     # Content Security Policy - Development friendly (Laravel middleware will override this)
     # This is a fallback CSP in case Laravel middleware doesn't run
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* http://127.0.0.1:*; script-src-elem 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:*; style-src 'self' 'unsafe-inline' https://fonts.bunny.net; style-src-elem 'self' 'unsafe-inline' https://fonts.bunny.net; img-src 'self' data: blob:; font-src 'self' data: https://fonts.bunny.net; connect-src 'self' ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*; media-src 'self' blob:; object-src 'none'; frame-src 'none'; worker-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; manifest-src 'none'"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* http://127.0.0.1:*; script-src-elem 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:*; style-src 'self' 'unsafe-inline' https://fonts.bunny.net; style-src-elem 'self' 'unsafe-inline' https://fonts.bunny.net; img-src 'self' data: blob: https://api.qrserver.com; font-src 'self' data: https://fonts.bunny.net; connect-src 'self' ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*; media-src 'self' blob:; object-src 'none'; frame-src 'none'; worker-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; manifest-src 'none'"
 
     # Cross-Origin policies for security
     Header always set Cross-Origin-Embedder-Policy "require-corp"

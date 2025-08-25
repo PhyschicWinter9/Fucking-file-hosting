@@ -22,13 +22,14 @@ const mockUploadResponse = {
 };
 
 describe('FileUploader', () => {
-    const user = userEvent.setup();
+    let user: ReturnType<typeof userEvent.setup>;
     let mockOnUploadStart: ReturnType<typeof vi.fn>;
     let mockOnUploadComplete: ReturnType<typeof vi.fn>;
     let mockOnUploadError: ReturnType<typeof vi.fn>;
     let mockOnUploadProgress: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
+        user = userEvent.setup();
         mockOnUploadStart = vi.fn();
         mockOnUploadComplete = vi.fn();
         mockOnUploadError = vi.fn();
@@ -239,7 +240,46 @@ describe('FileUploader', () => {
         expect(screen.getByText('file2.txt')).toBeInTheDocument();
     });
 
-    it('allows canceling individual uploads', async () => {
+    it('allows canceling individual uploads and aborts requests', async () => {
+        // Mock XMLHttpRequest with abort method
+        const mockAbort = vi.fn();
+        const mockXHR = {
+            open: vi.fn(),
+            send: vi.fn(),
+            setRequestHeader: vi.fn(),
+            abort: mockAbort,
+            addEventListener: vi.fn((event, callback) => {
+                if (event === 'load') {
+                    // Don't auto-complete, let us cancel first
+                    setTimeout(() => {
+                        mockXHR.status = 200;
+                        mockXHR.responseText = JSON.stringify(mockUploadResponse);
+                        callback();
+                    }, 1000);
+                }
+                if (event === 'abort') {
+                    setTimeout(callback, 50);
+                }
+            }),
+            upload: {
+                addEventListener: vi.fn((event, callback) => {
+                    if (event === 'progress') {
+                        setTimeout(() => {
+                            callback({
+                                lengthComputable: true,
+                                loaded: 25,
+                                total: 100,
+                            });
+                        }, 100);
+                    }
+                }),
+            },
+            status: 200,
+            responseText: JSON.stringify(mockUploadResponse),
+        };
+
+        global.XMLHttpRequest = vi.fn(() => mockXHR);
+
         render(<FileUploader onUploadStart={mockOnUploadStart} />);
 
         const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
@@ -257,6 +297,11 @@ describe('FileUploader', () => {
 
         if (cancelButton) {
             await user.click(cancelButton);
+            
+            // Verify that xhr.abort() was called
+            await waitFor(() => {
+                expect(mockAbort).toHaveBeenCalled();
+            });
         }
     });
 
@@ -291,5 +336,69 @@ describe('FileUploader', () => {
             },
             { timeout: 3000 },
         );
+    });
+
+    it('cancels chunked uploads using AbortController', async () => {
+        // Mock fetch for chunked uploads
+        const mockAbortController = {
+            signal: { aborted: false },
+            abort: vi.fn(() => {
+                mockAbortController.signal.aborted = true;
+            }),
+        };
+        
+        global.AbortController = vi.fn(() => mockAbortController);
+        
+        global.fetch = vi.fn().mockImplementation((url) => {
+            if (url.includes('/api/upload/init')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        success: true,
+                        data: { session_id: 'test-session' }
+                    })
+                });
+            }
+            if (url.includes('/api/upload/chunk')) {
+                // Simulate long-running chunk upload
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        if (mockAbortController.signal.aborted) {
+                            throw new Error('Upload cancelled');
+                        }
+                        resolve({
+                            ok: true,
+                            json: () => Promise.resolve({ success: true })
+                        });
+                    }, 500);
+                });
+            }
+            return Promise.reject(new Error('Unknown endpoint'));
+        });
+
+        render(<FileUploader onUploadStart={mockOnUploadStart} />);
+
+        // Create a large file to trigger chunked upload (>25MB)
+        const largeFile = new File(['x'.repeat(26 * 1024 * 1024)], 'large.txt', { type: 'text/plain' });
+        const input = screen.getByLabelText(/Select files to upload/);
+
+        await user.upload(input, largeFile);
+
+        await waitFor(() => {
+            expect(screen.getByText('Upload Progress')).toBeInTheDocument();
+        });
+
+        // Find and click cancel button
+        const cancelButtons = screen.getAllByRole('button');
+        const cancelButton = cancelButtons.find((btn) => btn.querySelector('svg') && btn.getAttribute('class')?.includes('h-8 w-8'));
+
+        if (cancelButton) {
+            await user.click(cancelButton);
+            
+            // Verify that AbortController.abort() was called
+            await waitFor(() => {
+                expect(mockAbortController.abort).toHaveBeenCalled();
+            });
+        }
     });
 });

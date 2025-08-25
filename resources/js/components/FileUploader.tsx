@@ -41,6 +41,8 @@ interface FileUploadState {
     eta?: number;
     isDuplicate?: boolean;
     spaceSaved?: number;
+    abortController?: AbortController;
+    xhr?: XMLHttpRequest;
 }
 
 interface CompletedFile {
@@ -160,6 +162,10 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             const totalChunks = Math.ceil(file.size / chunkSize);
             let uploadedChunks = 0;
 
+            // Create abort controller for this upload
+            const abortController = new AbortController();
+            updateState({ abortController });
+
             const initResponse = await fetch('/api/upload/init', {
                 method: 'POST',
                 headers: {
@@ -172,6 +178,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                     total_size: file.size,
                     chunk_size: chunkSize,
                 }),
+                signal: abortController.signal,
             });
 
             if (!initResponse.ok) {
@@ -187,6 +194,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             const { session_id } = initData.data;
 
             for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+                // Check if upload was cancelled
+                if (abortController.signal.aborted) {
+                    throw new Error('Upload cancelled');
+                }
+
                 const start = chunkIndex * chunkSize;
                 const end = Math.min(start + chunkSize, file.size);
                 const chunk = file.slice(start, end);
@@ -202,6 +214,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                     },
                     body: formData,
+                    signal: abortController.signal,
                 });
 
                 if (!chunkResponse.ok) {
@@ -228,6 +241,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                     session_id,
                     expiration_days: expirationDays,
                 }),
+                signal: abortController.signal,
             });
 
             if (!finalizeResponse.ok) {
@@ -259,6 +273,9 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             }
 
             const xhr = new XMLHttpRequest();
+            
+            // Store xhr reference for cancellation
+            updateState({ xhr });
 
             return new Promise((resolve, reject) => {
                 const startTime = Date.now();
@@ -342,6 +359,10 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                     reject(new Error('Network error occurred'));
                 });
 
+                xhr.addEventListener('abort', () => {
+                    reject(new Error('Upload cancelled'));
+                });
+
                 xhr.open('POST', '/api/upload');
                 xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '');
                 xhr.send(formData);
@@ -368,6 +389,14 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                     await uploadFileSimple(file, index, updateState);
                 }
             } catch (error) {
+                // Check if it's an abort error
+                if (error instanceof Error && (error.name === 'AbortError' || error.message === 'Upload cancelled')) {
+                    updateState({
+                        status: 'cancelled',
+                    });
+                    return; // Don't throw for cancelled uploads
+                }
+                
                 const errorMessage = error instanceof Error ? error.message : 'Upload failed';
                 updateState({
                     status: 'error',
@@ -552,7 +581,22 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
     // Cancel upload
     const cancelUpload = (index: number) => {
-        setUploadStates((prev) => prev.map((state, i) => (i === index ? { ...state, status: 'cancelled' } : state)));
+        setUploadStates((prev) => {
+            const newStates = prev.map((state, i) => {
+                if (i === index) {
+                    // Abort ongoing requests
+                    if (state.abortController) {
+                        state.abortController.abort();
+                    }
+                    if (state.xhr) {
+                        state.xhr.abort();
+                    }
+                    return { ...state, status: 'cancelled' as const };
+                }
+                return state;
+            });
+            return newStates;
+        });
 
         // Check if all uploads are cancelled or completed, then reset uploading state
         setTimeout(() => {
@@ -589,7 +633,19 @@ const FileUploader: React.FC<FileUploaderProps> = ({
     // Bulk actions
     const cancelAllUploads = () => {
         setUploadStates((prev) =>
-            prev.map((state) => (state.status === 'uploading' || state.status === 'pending' ? { ...state, status: 'cancelled' as const } : state)),
+            prev.map((state) => {
+                if (state.status === 'uploading' || state.status === 'pending') {
+                    // Abort ongoing requests
+                    if (state.abortController) {
+                        state.abortController.abort();
+                    }
+                    if (state.xhr) {
+                        state.xhr.abort();
+                    }
+                    return { ...state, status: 'cancelled' as const };
+                }
+                return state;
+            }),
         );
         setIsUploading(false);
         setActiveUploads(0);
