@@ -11,8 +11,8 @@ interface MetaTagsProps {
 
 export default function MetaTags({
     title = 'Fucking File Hosting - Blazing Fast, Privacy-First File Sharing',
-    description = 'Upload and share files instantly with zero registration. Up to 100MB uploads, complete privacy, no speed limits, no bullshit. Secure, anonymous file hosting with cryptographic protection.',
-    image = '/images/og-image.png',
+    description = 'Upload and share files instantly with zero registration. Up to 1GB uploads, complete privacy, no speed limits, no bullshit. Secure, anonymous file hosting with cryptographic protection.',
+    image = '/FK.png',
     url,
     type = 'website',
     keywords = 'file hosting, file sharing, upload files, anonymous upload, privacy file sharing, secure file hosting, no registration file upload, fast file sharing, temporary file hosting, drag and drop upload, no bullshit file hosting',
@@ -24,6 +24,7 @@ export default function MetaTags({
         <Head>
             {/* Basic Meta Tags */}
             <title>{title}</title>
+            <meta name="title" content="Fucking File Hosting - Blazing Fast, Privacy-First File Sharing" />
             <meta name="description" content={description} />
             <meta name="keywords" content={keywords} />
             <meta name="author" content="Fucking File Hosting" />
@@ -84,7 +85,7 @@ export default function MetaTags({
                         priceCurrency: 'USD',
                     },
                     featureList: [
-                        'Anonymous file uploads up to 100MB',
+                        'Anonymous file uploads up to 1GB',
                         'Zero speed limits for downloads',
                         'Complete privacy protection',
                         'No registration required',

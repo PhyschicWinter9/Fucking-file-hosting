@@ -846,7 +846,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                                 <SelectTrigger className="focus-ring w-48 cursor-pointer transition-colors hover:bg-secondary/50 sm:w-56">
                                     <SelectValue placeholder="Select expiration" />
                                 </SelectTrigger>
-                                <SelectContent className="border-border bg-card text-foreground">
+                                <SelectContent className="border-border bg-[#101828] text-foreground">
                                     <SelectItem value="1" className="cursor-pointer hover:bg-secondary/50">
                                         1 day
                                     </SelectItem>

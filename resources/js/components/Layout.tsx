@@ -143,7 +143,7 @@ export default function Layout({
                                 </p>
                                 <div className="space-y-1">
                                     <p className="text-xs text-muted-foreground">Version 1.0.0 &copy; {new Date().getFullYear()}</p>
-                                    <p className="text-xs text-muted-foreground">All rights reserved.</p>
+                                    <p className="text-xs text-muted-foreground">RELAXLIKES | All rights reserved.</p>
                                 </div>
                             </div>
 
@@ -153,7 +153,7 @@ export default function Layout({
                                 <ul className="space-y-2 text-sm text-muted-foreground">
                                     <li className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
                                         <span className="text-primary">•</span>
-                                        <span>Up to 100MB file uploads</span>
+                                        <span>Up to 1 GB file uploads</span>
                                     </li>
                                     <li className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
                                         <span className="text-primary">•</span>
