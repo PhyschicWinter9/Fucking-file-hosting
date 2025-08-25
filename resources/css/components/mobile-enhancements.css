@@ -1,0 +1,120 @@
+/* Mobile-specific enhancements */
+
+/* Touch-friendly tap targets */
+@media (max-width: 768px) {
+    .touch-target {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Larger tap areas for mobile */
+    button, 
+    [role="button"], 
+    a {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+        font-size: 16px;
+    }
+    
+    /* Better scroll behavior on mobile */
+    .scroll-smooth {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+    
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
+    }
+    
+    /* Better touch feedback */
+    .touch-feedback {
+        -webkit-tap-highlight-color: rgba(255, 107, 53, 0.2);
+        tap-highlight-color: rgba(255, 107, 53, 0.2);
+    }
+    
+    /* Improved drag and drop on mobile */
+    .upload-zone {
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .crisp-edges {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .pulse-glow,
+    .spinner,
+    .progress-shimmer {
+        animation: none !important;
+    }
+}
+
+/* Dark mode improvements */
+@media (prefers-color-scheme: dark) {
+    /* Better contrast for dark mode */
+    .text-muted-foreground {
+        color: rgb(161 161 170);
+    }
+    
+    /* Improved focus visibility in dark mode */
+    .focus-ring:focus {
+        box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.4);
+    }
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    * {
+        background: transparent !important;
+        color: black !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+    
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+    
+    .gradient-primary-text {
+        color: black !important;
+        background: none !important;
+        -webkit-text-fill-color: initial !important;
+    }
+}

@@ -174,15 +174,10 @@ Require all denied
 
 <LocationMatch "^/api/upload">
 <RequireAll>
-Require all granted # Add rate limiting if mod_evasive is available
-<IfModule mod_evasive24.c>
-DOSHashTableSize 2048
-DOSPageCount 10
-DOSPageInterval 1
-DOSSiteCount 50
-DOSSiteInterval 1
-DOSBlockingPeriod 600
-</IfModule>
+Require all granted # No rate limiting for uploads
+
+# mod_evasive disabled for upload endpoints to allow chunked uploads
+
 </RequireAll>
 </LocationMatch>
 

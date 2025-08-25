@@ -30,9 +30,29 @@ interface UploadState {
     };
 }
 
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+const DEFAULT_CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunks (matches backend default)
 const MAX_RETRIES = 3;
 const CHUNKED_UPLOAD_THRESHOLD = 25 * 1024 * 1024; // 25MB (Cloudflare compatibility)
+
+/**
+ * Calculate optimal chunk size based on file size (matches backend logic)
+ */
+function calculateOptimalChunkSize(fileSize: number): number {
+    const baseChunkSize = 1024 * 1024; // 1MB
+
+    // For files larger than 1GB, use 5MB chunks
+    if (fileSize > 1024 * 1024 * 1024) {
+        return baseChunkSize * 5;
+    }
+
+    // For files larger than 500MB, use 2MB chunks
+    if (fileSize > 500 * 1024 * 1024) {
+        return baseChunkSize * 2;
+    }
+
+    // Default 1MB chunks
+    return baseChunkSize;
+}
 
 export function useFileUpload(): UseFileUploadReturn {
     const [uploadState, setUploadState] = useState<UploadState>({});
@@ -208,7 +228,8 @@ export function useFileUpload(): UseFileUploadReturn {
         options: UploadOptions,
         startTime: number
     ): Promise<UploadResult> => {
-        const chunkSize = options.chunk_size || CHUNK_SIZE;
+        // Use backend's optimal chunk size calculation
+        const chunkSize = options.chunk_size || calculateOptimalChunkSize(file.size);
         const totalChunks = Math.ceil(file.size / chunkSize);
 
         // Initialize chunked upload

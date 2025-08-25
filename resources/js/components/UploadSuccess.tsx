@@ -30,8 +30,6 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
     const [copiedUrls, setCopiedUrls] = useState<Set<string>>(new Set());
     const { toast } = useToast();
 
-    console.log('UploadSuccess received files:', files);
-
     // Format file size
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -80,7 +78,6 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
                     url: file.downloadUrl,
                 });
             } catch {
-                // Fallback to clipboard
                 await copyToClipboard(file.downloadUrl, file.originalName);
             }
         } else {
@@ -113,14 +110,14 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
     return (
         <div className={cn('space-y-6', className)}>
             {/* Success Header */}
-            <Card className="p-6 text-center">
+            <Card className="rounded-xl border border-border p-6 text-center shadow-md">
                 <div className="mb-4 flex justify-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-                        <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-green-400 to-green-500 shadow-lg dark:from-green-700 dark:to-green-600">
+                        <CheckCircle className="h-8 w-8 text-white" />
                     </div>
                 </div>
 
-                <h2 className="mb-2 text-2xl font-bold">Upload Complete!</h2>
+                <h2 className="mb-2 text-2xl font-bold text-foreground">Upload Complete!</h2>
                 <p className="text-muted-foreground">
                     {files.length === 1 ? 'Your file has been uploaded successfully' : `All ${files.length} files have been uploaded successfully`}
                 </p>
@@ -129,19 +126,19 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
             {/* Files List */}
             <div className="space-y-4">
                 {files.map((file) => (
-                    <Card key={file.fileId} className="p-6">
+                    <Card key={file.fileId} className="rounded-xl border border-border p-6 shadow-sm">
                         <div className="space-y-4">
                             {/* File Header */}
                             <div className="flex items-start justify-between">
                                 <div className="flex min-w-0 flex-1 items-start space-x-3">
                                     <div className="text-2xl">{getFileIcon(file.mimeType)}</div>
                                     <div className="min-w-0 flex-1">
-                                        <h3 className="truncate font-semibold">{file.originalName}</h3>
-                                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                                        <h3 className="truncate font-semibold text-foreground">{file.originalName}</h3>
+                                        <div className="flex flex-wrap items-center space-x-4 text-sm text-muted-foreground">
                                             <span>{formatFileSize(file.fileSize)}</span>
                                             <span>{file.mimeType}</span>
                                             {file.isDuplicate && (
-                                                <Badge variant="secondary" className="text-xs">
+                                                <Badge className="bg-yellow-200 text-xs text-yellow-900 dark:bg-yellow-600 dark:text-yellow-50">
                                                     Duplicate - Saved {formatFileSize(file.spaceSaved || 0)}
                                                 </Badge>
                                             )}
@@ -158,7 +155,8 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
                                         type="text"
                                         value={file.downloadUrl}
                                         readOnly
-                                        className="min-w-0 flex-1 rounded-md border border-input bg-muted px-3 py-2 font-mono text-sm"
+                                        placeholder="Download URL"
+                                        className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground"
                                     />
                                     <Button variant="outline" size="sm" onClick={() => copyToClipboard(file.downloadUrl, file.originalName)}>
                                         {copiedUrls.has(file.downloadUrl) ? (
@@ -172,16 +170,14 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
 
                             {/* Action Buttons */}
                             <div className="flex flex-wrap gap-2">
-                                {/* Direct Download */}
                                 <Button
                                     onClick={() => window.open(file.downloadUrl, '_blank')}
-                                    className="flex-1 bg-green-400 shadow-sm hover:bg-green-500 sm:flex-none"
+                                    className="flex-1 bg-green-500 text-white shadow hover:bg-green-600 sm:flex-none"
                                 >
                                     <Download className="mr-2 h-4 w-4" />
                                     Download
                                 </Button>
 
-                                {/* Preview */}
                                 {canPreview(file.mimeType) && file.previewUrl && (
                                     <Button variant="outline" onClick={() => window.open(file.previewUrl, '_blank')} className="flex-1 sm:flex-none">
                                         <Eye className="mr-2 h-4 w-4" />
@@ -189,13 +185,11 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
                                     </Button>
                                 )}
 
-                                {/* Share */}
                                 <Button variant="outline" onClick={() => shareFile(file)} className="flex-1 sm:flex-none">
                                     <Share2 className="mr-2 h-4 w-4" />
                                     Share
                                 </Button>
 
-                                {/* File Details Page */}
                                 <Button
                                     variant="outline"
                                     onClick={() => window.open(file.infoUrl || `/file/${file.fileId}`, '_blank')}
@@ -208,24 +202,25 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
 
                             {/* File Information */}
                             <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-                                <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
+                                <div className="rounded-lg border border-blue-300 bg-blue-50 p-3 dark:border-blue-500 dark:bg-blue-900/20">
                                     <div className="flex items-start space-x-2">
-                                        <Download className="mt-0.5 h-4 w-4 text-black" />
+                                        <Download className="mt-0.5 h-4 w-4 text-blue-700 dark:text-blue-400" />
                                         <div>
-                                            <p className="font-medium text-black">Download Manager Support</p>
-                                            <p className="text-black">Works with IDM, JDownloader, and other download managers.</p>
+                                            <p className="font-medium text-blue-800 dark:text-blue-200">Download Manager Support</p>
+                                            <p className="text-blue-700 dark:text-blue-300">
+                                                Works with IDM, JDownloader, and other download managers.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {file.expiresAt && (
-                                    <div className="rounded-lg bg-red-400 p-3 dark:bg-red-900/20">
+                                    <div className="rounded-lg border border-red-500/30 bg-red-50 p-3 dark:border-red-500/40 dark:bg-red-900/20">
                                         <div className="flex items-start space-x-2">
-                                            <ExternalLink className="mt-0.5 h-4 w-4 text-black" />
+                                            <ExternalLink className="mt-0.5 h-4 w-4 text-red-600 dark:text-red-400" />
                                             <div>
-                                                <p className="font-medium text-black">Expires</p>
-                                                {/* <p className="text-red-600">{new Date(file.expiresAt).toLocaleDateString()}</p> */}
-                                                <p className="text-black">
+                                                <p className="font-medium text-red-800 dark:text-red-200">Expires</p>
+                                                <p className="text-red-700 dark:text-red-300">
                                                     This file will expire on {new Date(file.expiresAt).toLocaleDateString()} at{' '}
                                                     {new Date(file.expiresAt).toLocaleTimeString()}
                                                 </p>
@@ -235,7 +230,7 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
                                 )}
 
                                 {file.deleteToken && (
-                                    <div className="rounded-lg bg-red-50 p-3 sm:col-span-2 dark:bg-red-900/20">
+                                    <div className="rounded-lg border border-red-500 bg-red-50 p-3 sm:col-span-2 dark:border-red-700 dark:bg-red-900/20">
                                         <div className="flex items-start space-x-2">
                                             <ExternalLink className="mt-0.5 h-4 w-4 text-red-600 dark:text-red-400" />
                                             <div>
@@ -254,24 +249,24 @@ const UploadSuccess: React.FC<UploadSuccessProps> = ({ files, onNewUpload, class
             </div>
 
             {/* Upload Another File */}
-            <Card className="p-6 text-center">
-                <h3 className="mb-3 text-lg font-semibold">Upload Another File?</h3>
+            <Card className="rounded-xl border border-border p-6 text-center shadow">
+                <h3 className="mb-3 text-lg font-semibold text-foreground">Upload Another File?</h3>
                 <p className="mb-4 text-muted-foreground">Upload more files with zero registration and complete privacy.</p>
-                <Button onClick={onNewUpload} variant="outline">
+                <Button onClick={onNewUpload} variant="outline" className="hover:bg-accent">
                     <File className="mr-2 h-4 w-4" />
                     Upload New File
                 </Button>
             </Card>
 
             {/* Privacy Notice */}
-            <Card className="border-muted bg-muted/20 p-4">
+            <Card className="rounded-xl border border-border bg-muted/30 p-4">
                 <div className="space-y-2 text-sm text-muted-foreground">
                     <p className="font-medium">🔒 Privacy & Security:</p>
-                    <ul className="space-y-1 pl-4">
-                        <li>• Files are secured with cryptographic IDs</li>
-                        <li>• No IP addresses or personal data logged</li>
-                        <li>• Share links only with trusted people</li>
-                        <li>• Files auto-delete after expiration</li>
+                    <ul className="list-disc space-y-1 pl-4">
+                        <li>Files are secured with cryptographic IDs</li>
+                        <li>No IP addresses or personal data logged</li>
+                        <li>Share links only with trusted people</li>
+                        <li>Files auto-delete after expiration</li>
                     </ul>
                 </div>
             </Card>

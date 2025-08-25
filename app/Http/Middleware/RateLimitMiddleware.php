@@ -19,8 +19,14 @@ class RateLimitMiddleware
             return $next($request);
         }
 
-        $key = $this->resolveRequestSignature($request, $type);
         $maxAttempts = $this->getMaxAttempts($type);
+        
+        // Skip rate limiting if max attempts is 0 (unlimited)
+        if ($maxAttempts === 0) {
+            return $next($request);
+        }
+
+        $key = $this->resolveRequestSignature($request, $type);
         $decayMinutes = $this->getDecayMinutes($type);
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
@@ -73,7 +79,7 @@ class RateLimitMiddleware
     protected function getMaxAttempts(string $type): int
     {
         return match ($type) {
-            'upload' => config('filehosting.rate_limit_uploads', 10),
+            'upload' => config('filehosting.rate_limit_uploads', 0),
             'download' => config('filehosting.rate_limit_downloads', 60),
             'api' => config('filehosting.rate_limit_api', 100),
             default => 60,

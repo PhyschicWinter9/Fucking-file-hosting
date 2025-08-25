@@ -10,17 +10,17 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// File upload endpoints with rate limiting and bypass post size validation
+// File upload endpoints with configurable rate limiting and bypass post size validation
 Route::middleware(['throttle:uploads', \App\Http\Middleware\BypassPostSizeValidation::class])->group(function () {
     Route::post('/upload', [FileUploadController::class, 'upload'])->name('api.upload');
+});
 
-    // Chunked upload endpoints
+// Chunked upload endpoints with higher rate limits
+Route::middleware(['throttle:chunked-uploads', \App\Http\Middleware\BypassPostSizeValidation::class])->group(function () {
     Route::post('/upload/init', [FileUploadController::class, 'chunkedUpload'])
         ->defaults('action', 'initialize')
         ->name('api.upload.init');
-    Route::post('/upload/chunk', [FileUploadController::class, 'chunkedUpload'])
-        ->defaults('action', 'upload_chunk')
-        ->name('api.upload.chunk');
+    Route::post('/upload/chunk', [FileUploadController::class, 'chunkedUpload'])->name('api.upload.chunk');
     Route::post('/upload/finalize', [FileUploadController::class, 'finalizeUpload'])->name('api.upload.finalize');
 });
 

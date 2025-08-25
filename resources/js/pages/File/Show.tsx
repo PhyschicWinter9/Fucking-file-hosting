@@ -39,7 +39,7 @@ export default function FileShow({ file }: FileShowPageProps) {
                 description: `${label} copied to clipboard`,
                 variant: 'default',
             });
-        } catch (error) {
+        } catch {
             toast({
                 title: 'Copy failed',
                 description: 'Failed to copy to clipboard',
@@ -167,14 +167,17 @@ export default function FileShow({ file }: FileShowPageProps) {
             <Head title={`${file.original_name} - File Info`} />
             <div className="min-h-screen bg-background">
                 {/* Header */}
-                <header className="border-b border-border bg-card">
+                <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
                     <div className="container mx-auto px-4 py-4">
                         <div className="flex items-center justify-between">
-                            <Link href="/" className="bg-gradient-primary bg-clip-text text-2xl font-bold text-transparent">
-                                FastFile
+                            <Link href="/" className="bg-gradient-primary bg-clip-text text-xl font-bold text-transparent sm:text-2xl">
+                                Fucking File
                             </Link>
                             <Link href="/">
-                                <Button variant="outline">Upload New File</Button>
+                                <Button variant="outline" size="sm" className="sm:size-default">
+                                    <span className="hidden sm:inline">Upload New File</span>
+                                    <span className="sm:hidden">Upload</span>
+                                </Button>
                             </Link>
                         </div>
                     </div>
@@ -186,23 +189,23 @@ export default function FileShow({ file }: FileShowPageProps) {
                         {/* File Header */}
                         <Card>
                             <CardHeader>
-                                <div className="flex items-start justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="text-4xl">{getFileIcon(file.mime_type)}</div>
-                                        <div>
-                                            <CardTitle className="text-2xl break-all">{file.original_name}</CardTitle>
-                                            <CardDescription className="mt-2 flex items-center space-x-4">
+                                <div className="flex flex-col space-y-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+                                    <div className="flex items-start space-x-3">
+                                        <div className="flex-shrink-0 text-3xl sm:text-4xl">{getFileIcon(file.mime_type)}</div>
+                                        <div className="min-w-0 flex-1">
+                                            <CardTitle className="text-lg break-all sm:text-2xl">{file.original_name}</CardTitle>
+                                            <CardDescription className="mt-2 flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                                                 <span className="flex items-center space-x-1">
-                                                    <HardDrive className="h-4 w-4" />
+                                                    <HardDrive className="h-4 w-4 flex-shrink-0" />
                                                     <span>{file.human_file_size}</span>
                                                 </span>
                                                 <span className="flex items-center space-x-1">
-                                                    <FileText className="h-4 w-4" />
-                                                    <span>{file.mime_type}</span>
+                                                    <FileText className="h-4 w-4 flex-shrink-0" />
+                                                    <span className="truncate">{file.mime_type}</span>
                                                 </span>
                                                 <span className="flex items-center space-x-1">
-                                                    <Calendar className="h-4 w-4" />
-                                                    <span>{formatDate(file.created_at)}</span>
+                                                    <Calendar className="h-4 w-4 flex-shrink-0" />
+                                                    <span className="text-xs sm:text-sm">{formatDate(file.created_at)}</span>
                                                 </span>
                                             </CardDescription>
                                         </div>
@@ -212,9 +215,11 @@ export default function FileShow({ file }: FileShowPageProps) {
                                             variant={
                                                 new Date(file.expires_at) < new Date(Date.now() + 24 * 60 * 60 * 1000) ? 'destructive' : 'secondary'
                                             }
+                                            className="self-start"
                                         >
                                             <Clock className="mr-1 h-3 w-3" />
-                                            Expires {formatDate(file.expires_at)}
+                                            <span className="hidden sm:inline">Expires </span>
+                                            <span className="text-xs">{formatDate(file.expires_at)}</span>
                                         </Badge>
                                     )}
                                 </div>
@@ -222,7 +227,7 @@ export default function FileShow({ file }: FileShowPageProps) {
                         </Card>
 
                         {/* Action Buttons */}
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
                             {/* Download Button */}
                             <Card
                                 className="cursor-pointer transition-shadow hover:shadow-lg"
@@ -343,6 +348,7 @@ export default function FileShow({ file }: FileShowPageProps) {
                                                 type="text"
                                                 value={file.download_url}
                                                 readOnly
+                                                placeholder="Download"
                                                 className="flex-1 rounded-l-md border border-border bg-muted px-3 py-2 text-sm"
                                             />
                                             <Button
@@ -363,6 +369,7 @@ export default function FileShow({ file }: FileShowPageProps) {
                                                 type="text"
                                                 value={file.info_url}
                                                 readOnly
+                                                placeholder="Info URL"
                                                 className="flex-1 rounded-l-md border border-border bg-muted px-3 py-2 text-sm"
                                             />
                                             <Button
@@ -456,8 +463,8 @@ export default function FileShow({ file }: FileShowPageProps) {
                 <footer className="mt-16 border-t border-border bg-card">
                     <div className="container mx-auto px-4 py-8">
                         <div className="text-center text-muted-foreground">
-                            <p>&copy; 2024 FastFile. Fast, private, and secure file hosting.</p>
-                            <div className="mt-4 flex justify-center space-x-4">
+                            <p>&copy; {new Date().getFullYear()} Fucking File. Fast, private, and secure file hosting.</p>
+                            {/* <div className="mt-4 flex justify-center space-x-4">
                                 <Link href="/privacy" className="hover:text-foreground">
                                     Privacy Policy
                                 </Link>
@@ -467,7 +474,7 @@ export default function FileShow({ file }: FileShowPageProps) {
                                 <Link href="/api-docs" className="hover:text-foreground">
                                     API Documentation
                                 </Link>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </footer>

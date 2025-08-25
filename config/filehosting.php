@@ -14,7 +14,7 @@ return [
     'max_file_size' => env('MAX_FILE_SIZE', (int)(env('MAX_FILE_SIZE_MB', 10) * 1024 * 1024)), // Configurable via MB setting
     'max_file_size_mb' => env('MAX_FILE_SIZE_MB', 100), // Maximum file size in MB (configurable)
     'chunk_size' => env('CHUNK_SIZE', 2097152), // 2MB in bytes (Cloudflare compatibility)
-    'bypass_cloudflare' => env('BYPASS_CLOUDFLARE', false), // Enable direct server uploads to bypass Cloudflare limits
+    'bypass_cloudflare' => env('BYPASS_CLOUDFLARE', true), // Enable direct server uploads to bypass Cloudflare limits
     'files_storage_path' => env('FILES_STORAGE_PATH', 'files'),
     'cleanup_expired_files' => env('CLEANUP_EXPIRED_FILES', true),
 
@@ -60,6 +60,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Chunked Upload Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for chunked upload sessions and timeouts.
+    |
+    */
+
+    'chunked_upload_session_timeout_hours' => env('CHUNKED_UPLOAD_SESSION_TIMEOUT_HOURS', 48), // 48 hours for large files
+    'chunked_upload_cleanup_interval_hours' => env('CHUNKED_UPLOAD_CLEANUP_INTERVAL_HOURS', 6), // Clean up every 6 hours
+    'chunked_upload_max_retries' => env('CHUNKED_UPLOAD_MAX_RETRIES', 3), // Max retries per chunk
+
+    /*
+    |--------------------------------------------------------------------------
     | File Management Settings
     |--------------------------------------------------------------------------
     |
@@ -81,8 +94,8 @@ return [
     |
     */
 
-    'rate_limiting_enabled' => env('RATE_LIMITING_ENABLED', true),
-    'rate_limit_uploads' => env('RATE_LIMIT_UPLOADS', 10),
+    'rate_limiting_enabled' => env('RATE_LIMITING_ENABLED', false),
+    'rate_limit_uploads' => env('RATE_LIMIT_UPLOADS', 0), // 0 = no limit
     'rate_limit_downloads' => env('RATE_LIMIT_DOWNLOADS', 60),
     'rate_limit_api' => env('RATE_LIMIT_API', 100),
 

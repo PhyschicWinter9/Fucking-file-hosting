@@ -432,13 +432,32 @@ class FileUploadController extends Controller
             ], 422);
         }
 
-        $sessionId = $request->input('session_id');
-        $sessionInfo = $this->chunkedUploadService->resumeUpload($sessionId);
+        try {
+            $sessionId = $request->input('session_id');
+            $sessionInfo = $this->chunkedUploadService->resumeUpload($sessionId);
 
-        return response()->json([
-            'success' => true,
-            'data' => $sessionInfo
-        ]);
+            // Log privacy-compliant action
+            $this->privacyManager->createPrivacyLog('chunked_upload_resumed', [
+                'session_id' => $sessionId,
+                'progress' => $sessionInfo['progress'],
+                'missing_chunks' => count($sessionInfo['missing_chunks']),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $sessionInfo
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'RESUME_ERROR',
+                    'message' => 'Failed to resume upload',
+                    'details' => ['error' => $e->getMessage()]
+                ]
+            ], 500);
+        }
     }
 
     /**

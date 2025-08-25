@@ -35,8 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\PerformanceMonitoring::class,
         ]);
 
-        // Enable API throttling
-        $middleware->throttleApi();
+        // API throttling is handled by custom rate limiters in routes
 
         // Add privacy protection to API routes
         $middleware->api(append: [

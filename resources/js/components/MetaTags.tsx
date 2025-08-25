@@ -49,7 +49,7 @@ export default function MetaTags({
             <meta name="twitter:creator" content="@fuckingfilehosting" />
 
             {/* Additional Meta Tags */}
-            <meta name="theme-color" content="#ff6b35" />
+            <meta name="msapplication-navbutton-color" content="#ff6b35" />
             <meta name="msapplication-TileColor" content="#ff6b35" />
             <meta name="apple-mobile-web-app-capable" content="yes" />
             <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

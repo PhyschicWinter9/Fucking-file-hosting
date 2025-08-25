@@ -29,8 +29,9 @@ class ChunkedUploadService
     ): UploadSession {
         $sessionId = $this->generateSessionId();
 
-        // Calculate session expiration (24 hours for incomplete uploads)
-        $sessionExpiration = Carbon::now()->addHours(24);
+        // Calculate session expiration using configurable timeout
+        $timeoutHours = (int) config('filehosting.chunked_upload_session_timeout_hours', 48);
+        $sessionExpiration = Carbon::now()->addHours($timeoutHours);
 
         return UploadSession::create([
             'session_id' => $sessionId,
@@ -64,11 +65,15 @@ class ChunkedUploadService
         // Validate chunk
         $this->validateChunk($session, $chunkIndex, $chunkFile);
 
-        // Store chunk temporarily
-        $chunkPath = $this->storeChunk($sessionId, $chunkIndex, $chunkFile);
+        // Store chunk temporarily with retry logic
+        $maxRetries = (int) config('filehosting.chunked_upload_max_retries', 3);
+        $chunkPath = $this->storeChunkWithRetry($sessionId, $chunkIndex, $chunkFile, $maxRetries);
 
         // Update session with uploaded chunk
         $session->addChunk($chunkIndex);
+
+        // Extend session timeout on active uploads
+        $this->extendSessionTimeout($session);
 
         return [
             'chunk_index' => $chunkIndex,
@@ -157,17 +162,28 @@ class ChunkedUploadService
 
         // Validate chunk size
         $expectedSize = $session->chunk_size;
-        $isLastChunk = ($chunkIndex === $totalChunks - 1);
+        $isLastChunk = ($chunkIndex === (int)($totalChunks - 1));
 
         if ($isLastChunk) {
-            $expectedSize = $session->total_size % $session->chunk_size;
-            if ($expectedSize === 0) {
+            // For the last chunk, calculate the remaining bytes
+            $remainingBytes = $session->total_size % $session->chunk_size;
+            if ($remainingBytes === 0) {
+                // If total_size is perfectly divisible by chunk_size, last chunk is full size
                 $expectedSize = $session->chunk_size;
+            } else {
+                // Otherwise, last chunk is the remainder
+                $expectedSize = $remainingBytes;
             }
         }
 
-        if ($chunkFile->getSize() !== $expectedSize) {
-            throw new \Exception("Invalid chunk size. Expected: {$expectedSize}, Got: " . $chunkFile->getSize());
+        $actualSize = $chunkFile->getSize();
+        
+        // Allow some tolerance for the last chunk (within 1% or 1KB, whichever is larger)
+        $tolerance = $isLastChunk ? max(1024, $expectedSize * 0.01) : 0;
+        
+        if (abs($actualSize - $expectedSize) > $tolerance) {
+            throw new \Exception("Invalid chunk size. Expected: {$expectedSize}, Got: {$actualSize}" . 
+                ($isLastChunk ? " (last chunk with tolerance: {$tolerance})" : ""));
         }
 
         // Check if chunk already uploaded
@@ -192,6 +208,31 @@ class ChunkedUploadService
         }
 
         return $path;
+    }
+
+    /**
+     * Store chunk with retry logic for better reliability.
+     */
+    private function storeChunkWithRetry(string $sessionId, int $chunkIndex, UploadedFile $chunkFile, int $maxRetries = 3): string
+    {
+        $lastException = null;
+
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            try {
+                return $this->storeChunk($sessionId, $chunkIndex, $chunkFile);
+            } catch (\Exception $e) {
+                $lastException = $e;
+                
+                if ($attempt < $maxRetries) {
+                    // Wait before retry (exponential backoff)
+                    $waitTime = pow(2, $attempt - 1); // 1s, 2s, 4s...
+                    sleep($waitTime);
+                    continue;
+                }
+            }
+        }
+
+        throw new \Exception("Failed to store chunk after {$maxRetries} attempts. Last error: " . $lastException->getMessage());
     }
 
     /**
@@ -318,6 +359,20 @@ class ChunkedUploadService
     {
         // Default threshold is 25MB (Cloudflare compatibility)
         return $fileSize > $threshold;
+    }
+
+    /**
+     * Extend session timeout when chunks are actively being uploaded.
+     */
+    private function extendSessionTimeout(UploadSession $session): void
+    {
+        $timeoutHours = (int) config('filehosting.chunked_upload_session_timeout_hours', 48);
+        $newExpiration = Carbon::now()->addHours($timeoutHours);
+        
+        // Only extend if the new expiration is later than current
+        if ($newExpiration->isAfter($session->expires_at)) {
+            $session->update(['expires_at' => $newExpiration]);
+        }
     }
 
     /**

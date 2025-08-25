@@ -154,17 +154,24 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
                 body: JSON.stringify({
-                    filename: file.name,
-                    size: file.size,
+                    action: 'initialize',
+                    original_name: file.name,
+                    total_size: file.size,
                     chunk_size: chunkSize,
                 }),
             });
 
             if (!initResponse.ok) {
-                throw new Error('Failed to initialize chunked upload');
+                const errorData = await initResponse.json();
+                throw new Error(errorData.error?.message || 'Failed to initialize chunked upload');
             }
 
-            const { session_id } = await initResponse.json();
+            const initData = await initResponse.json();
+            if (!initData.success) {
+                throw new Error(initData.error?.message || 'Failed to initialize chunked upload');
+            }
+
+            const { session_id } = initData.data;
 
             for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
                 const start = chunkIndex * chunkSize;
@@ -634,40 +641,100 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             {/* Main upload area */}
             <Card
                 className={cn(
-                    'relative cursor-pointer border-2 border-dashed transition-all duration-200',
-                    'hover:border-primary/50 hover:bg-primary/5',
-                    isDragOver && 'border-primary bg-primary/10',
+                    'upload-zone transition-all-smooth focus-ring relative',
+                    'hover:scale-[1.01] hover:border-primary/50 hover:bg-primary/5',
+                    isDragOver && 'drag-over scale-[1.02] border-primary bg-primary/10',
                     disabled && 'cursor-not-allowed opacity-50',
-                    isUploading && 'cursor-not-allowed',
+                    isUploading && 'pulse-glow cursor-not-allowed',
+                    !disabled && !isUploading && 'cursor-pointer',
                 )}
-                style={{ minHeight: '60vh' }}
+                style={{
+                    minHeight: 'clamp(400px, 50vh, 600px)',
+                    cursor: disabled || isUploading ? 'not-allowed' : isDragOver ? 'grabbing' : 'pointer',
+                }}
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 onClick={handleClick}
+                tabIndex={disabled || isUploading ? -1 : 0}
+                onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !disabled && !isUploading) {
+                        e.preventDefault();
+                        handleClick();
+                    }
+                }}
+                role="button"
+                aria-label={isDragOver ? 'Drop files to upload' : 'Click to select files or drag and drop files here'}
             >
-                <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-                    <div className={cn('mb-4 rounded-full p-4 transition-colors', isDragOver ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                        <Upload className="h-12 w-12" />
+                <div className="flex h-full flex-col items-center justify-center p-6 text-center sm:p-8 lg:p-12">
+                    <div
+                        className={cn(
+                            'mb-4 rounded-full p-4 transition-all duration-300 sm:mb-6 sm:p-6 lg:mb-8',
+                            isDragOver ? 'pulse-glow scale-110 bg-primary text-primary-foreground' : 'bg-muted hover:scale-105 hover:bg-muted/80',
+                            isUploading && 'spinner',
+                        )}
+                    >
+                        <Upload
+                            className={cn(
+                                'transition-all duration-300',
+                                'h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16',
+                                isDragOver && 'scale-110',
+                                isUploading && 'animate-pulse',
+                            )}
+                        />
                     </div>
 
-                    <h3 className="mb-2 text-2xl font-semibold">{isDragOver ? 'Drop files here' : 'Upload your files'}</h3>
+                    <h3
+                        className={cn(
+                            'mb-2 font-semibold transition-all duration-300 sm:mb-4',
+                            'text-xl sm:text-2xl lg:text-3xl',
+                            isDragOver && 'scale-105 text-primary',
+                        )}
+                    >
+                        {isDragOver ? 'Drop files here' : isUploading ? 'Uploading...' : 'Upload your files'}
+                    </h3>
 
-                    <p className="mb-4 max-w-md text-muted-foreground">
-                        Drag and drop files here, or click to select files.
-                        {maxFileSize && ` Maximum file size: ${formatFileSize(maxFileSize)}`}
+                    <p className="mb-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:mb-6 sm:text-base lg:mb-8 lg:max-w-lg">
+                        {isDragOver ? (
+                            'Release to start uploading'
+                        ) : isUploading ? (
+                            'Please wait while your files are being uploaded'
+                        ) : (
+                            <>
+                                <span className="block sm:inline">Drag and drop files here, or click to select files.</span>
+                                {maxFileSize && (
+                                    <span className="block sm:ml-1 sm:inline">
+                                        Maximum file size: <span className="font-medium text-primary">{formatFileSize(maxFileSize)}</span>
+                                    </span>
+                                )}
+                            </>
+                        )}
                     </p>
 
-                    <Button variant="outline" disabled={disabled || isUploading} className="mb-4">
-                        <File className="mr-2 h-4 w-4" />
-                        Choose Files
-                    </Button>
+                    {!isUploading && (
+                        <Button
+                            variant="outline"
+                            disabled={disabled || isUploading}
+                            className={cn(
+                                'btn-hover-scale focus-ring mb-4 sm:mb-6 lg:mb-8',
+                                'px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base',
+                                isDragOver && 'scale-105 border-primary bg-primary text-primary-foreground',
+                            )}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleClick();
+                            }}
+                        >
+                            <File className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                            Choose Files
+                        </Button>
+                    )}
 
                     {/* Expiration selector */}
-                    {showExpirationSelector && (
-                        <div className="mb-4 flex flex-col items-center space-y-2">
-                            <Label htmlFor="expiration-select" className="flex items-center text-sm font-medium">
+                    {showExpirationSelector && !isUploading && (
+                        <div className="mb-4 flex flex-col items-center space-y-2 sm:mb-6 sm:space-y-3">
+                            <Label htmlFor="expiration-select" className="flex items-center text-sm font-medium sm:text-base">
                                 <Clock className="mr-2 h-4 w-4" />
                                 File Expiration
                             </Label>
@@ -676,20 +743,42 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                                 onValueChange={(value) => setExpirationDays(value === 'never' ? null : parseInt(value))}
                                 disabled={disabled || isUploading}
                             >
-                                <SelectTrigger className="w-48">
+                                <SelectTrigger className="focus-ring w-48 cursor-pointer transition-colors hover:bg-secondary/50 sm:w-56">
                                     <SelectValue placeholder="Select expiration" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-white shadow-2xl">
-                                    <SelectItem value="1">1 day</SelectItem>
-                                    <SelectItem value="7">7 days</SelectItem>
-                                    <SelectItem value="14">14 days</SelectItem>
-                                    <SelectItem value="30">30 days</SelectItem>
+                                <SelectContent className="border-border bg-card">
+                                    <SelectItem value="1" className="cursor-pointer hover:bg-secondary/50">
+                                        1 day
+                                    </SelectItem>
+                                    <SelectItem value="7" className="cursor-pointer hover:bg-secondary/50">
+                                        7 days
+                                    </SelectItem>
+                                    <SelectItem value="14" className="cursor-pointer hover:bg-secondary/50">
+                                        14 days
+                                    </SelectItem>
+                                    <SelectItem value="30" className="cursor-pointer hover:bg-secondary/50">
+                                        30 days
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     )}
 
-                    {allowedTypes && <p className="text-sm text-muted-foreground">Allowed types: {allowedTypes.join(', ')}</p>}
+                    {allowedTypes && !isUploading && (
+                        <p className="text-xs text-muted-foreground sm:text-sm">
+                            <span className="font-medium">Allowed types:</span> {allowedTypes.join(', ')}
+                        </p>
+                    )}
+
+                    {/* Upload progress indicator */}
+                    {isUploading && (
+                        <div className="mt-4 w-full max-w-md">
+                            <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                                <div className="spinner h-4 w-4 rounded-full border-2 border-primary border-t-transparent"></div>
+                                <span>Processing your files...</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Hidden file input */}
@@ -706,9 +795,9 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
             {/* Upload progress list */}
             {uploadStates.length > 0 && (
-                <div className="mt-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h4 className="text-lg font-semibold">Upload Progress</h4>
+                <div className="slide-in-up mt-6 space-y-4 sm:mt-8 sm:space-y-6 lg:mt-10">
+                    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                        <h4 className="text-lg font-semibold sm:text-xl">Upload Progress</h4>
                         {enableBulkMode && uploadStates.length > 1 && (
                             <BulkActions
                                 states={uploadStates}
@@ -719,14 +808,18 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                         )}
                     </div>
                     {enableBulkMode && uploadStates.length > 1 && <BulkProgressSummary states={uploadStates} activeUploads={activeUploads} />}
-                    {uploadStates.map((state, index) => (
-                        <FileUploadItem
-                            key={`${state.file.name}-${index}`}
-                            state={state}
-                            onCancel={() => cancelUpload(index)}
-                            onRemove={() => removeFile(index)}
-                        />
-                    ))}
+                    <div className="space-y-3 sm:space-y-4">
+                        {uploadStates.map((state, index) => (
+                            <FileUploadItem
+                                key={`${state.file.name}-${index}`}
+                                state={state}
+                                onCancel={() => cancelUpload(index)}
+                                onRemove={() => removeFile(index)}
+                                className="fade-in"
+                                style={{ animationDelay: `${index * 0.1}s` }}
+                            />
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/useToast';
-import { CheckCircle, Lock, Zap } from 'lucide-react';
+import { CheckCircle, Copy, Lock, Zap } from 'lucide-react';
 import { useState } from 'react';
 
 interface UploadIndexProps {
@@ -52,20 +52,36 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
             description={`Upload files up to ${formatFileSize(maxFileSize)} instantly with complete privacy. No registration, no tracking, no bullshit. Secure anonymous file hosting with cryptographic protection.`}
             image="/images/og-upload.png"
         >
-            <div className="container mx-auto px-4 py-8">
+            <div className="container-responsive py-8 sm:py-12 lg:py-16">
                 {/* Hero Section */}
-                <div className="mb-12 text-center">
-                    <h1 className="mb-4 text-4xl font-bold md:text-6xl">
+                <div className="mb-12 text-center fade-in sm:mb-16 lg:mb-20">
+                    <h1 className="text-responsive-xl mb-4 leading-tight font-bold sm:mb-6">
                         <span className="gradient-primary-text">Fucking</span> File Hosting
                     </h1>
-                    <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground md:text-xl">
-                        Upload files up to {formatFileSize(maxFileSize)} instantly. No registration, no tracking, no bullshit. Just blazing fast file
-                        sharing with complete privacy and download manager support.
+                    <p className="text-responsive-md mx-auto mb-6 max-w-2xl px-4 leading-relaxed text-muted-foreground sm:mb-8">
+                        Upload files up to <span className="font-semibold text-primary">{formatFileSize(maxFileSize)}</span> instantly. No
+                        registration, no tracking, no bullshit. Just blazing fast file sharing with complete privacy and download manager support.
                     </p>
+
+                    {/* Quick stats */}
+                    <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground sm:gap-6 lg:gap-8">
+                        <div className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
+                            <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
+                            <span>Unlimited Speed</span>
+                        </div>
+                        <div className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
+                            <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
+                            <span>Zero Tracking</span>
+                        </div>
+                        <div className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
+                            <div className="h-2 w-2 animate-pulse rounded-full bg-purple-500"></div>
+                            <span>No Registration</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Upload Interface */}
-                <div className="mb-16">
+                <div className="mb-16 sm:mb-20 lg:mb-24">
                     <FileUploader
                         onUploadStart={handleUploadStart}
                         onUploadComplete={handleUploadComplete}
@@ -73,38 +89,42 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                         maxFileSize={maxFileSize}
                         defaultExpirationDays={1}
                         multiple={true}
-                        className="mx-auto max-w-4xl"
+                        className="slide-in-up mx-auto max-w-5xl"
                     />
                 </div>
 
                 {/* Feature Showcase */}
-                <section id="features" className="mb-16">
-                    <div className="mx-auto max-w-6xl">
-                        <h2 className="mb-12 text-center text-3xl font-bold">Why Choose Fucking File Hosting?</h2>
+                <section id="features" className="mb-16 sm:mb-20 lg:mb-24">
+                    <div className="mx-auto max-w-7xl">
+                        <h2 className="text-responsive-lg mb-8 text-center font-bold sm:mb-12 lg:mb-16">
+                            Why Choose <span className="gradient-primary-text">Fucking File Hosting</span>?
+                        </h2>
 
-                        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
                             {/* Speed Feature */}
-                            <Card className="p-6 text-center">
-                                <div className="mb-4 flex justify-center">
-                                    <div className="bg-gradient-primary flex h-16 w-16 items-center justify-center rounded-full">
-                                        <Zap className="h-8 w-8 text-white" />
+                            <Card className="card-interactive hover-lift group p-6 text-center sm:p-8">
+                                <div className="mb-4 flex justify-center sm:mb-6">
+                                    <div className="bg-gradient-primary gradient-hover group-hover:pulse-glow flex h-16 w-16 items-center justify-center rounded-full transition-all duration-300 sm:h-20 sm:w-20">
+                                        <Zap className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110 sm:h-10 sm:w-10" />
                                     </div>
                                 </div>
-                                <h3 className="mb-3 text-xl font-semibold">Blazing Speed</h3>
-                                <p className="text-muted-foreground">
+                                <h3 className="mb-3 text-xl font-semibold transition-colors group-hover:text-primary sm:mb-4 sm:text-2xl">
+                                    Blazing Speed
+                                </h3>
+                                <p className="mb-4 leading-relaxed text-muted-foreground sm:mb-6">
                                     No speed limits, no throttling. Upload and download at maximum speed with chunked uploads for files over 25MB.
                                     Compatible with IDM and other download managers.
                                 </p>
-                                <div className="mt-4 space-y-2 text-sm">
-                                    <div className="flex justify-between">
+                                <div className="space-y-2 text-sm sm:space-y-3">
+                                    <div className="flex cursor-default items-center justify-between rounded px-2 py-1 transition-colors hover:bg-secondary/50">
                                         <span>Upload Speed:</span>
                                         <span className="font-semibold text-primary">Unlimited</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex cursor-default items-center justify-between rounded px-2 py-1 transition-colors hover:bg-secondary/50">
                                         <span>Download Speed:</span>
                                         <span className="font-semibold text-primary">Unlimited</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex cursor-default items-center justify-between rounded px-2 py-1 transition-colors hover:bg-secondary/50">
                                         <span>Max File Size:</span>
                                         <span className="font-semibold text-primary">{formatFileSize(maxFileSize)}</span>
                                     </div>
@@ -112,26 +132,28 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                             </Card>
 
                             {/* Privacy Feature */}
-                            <Card className="p-6 text-center">
-                                <div className="mb-4 flex justify-center">
-                                    <div className="bg-gradient-primary flex h-16 w-16 items-center justify-center rounded-full">
-                                        <Lock className="h-8 w-8 text-white" />
+                            <Card className="card-interactive hover-lift group p-6 text-center sm:p-8">
+                                <div className="mb-4 flex justify-center sm:mb-6">
+                                    <div className="bg-gradient-primary gradient-hover group-hover:pulse-glow flex h-16 w-16 items-center justify-center rounded-full transition-all duration-300 sm:h-20 sm:w-20">
+                                        <Lock className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110 sm:h-10 sm:w-10" />
                                     </div>
                                 </div>
-                                <h3 className="mb-3 text-xl font-semibold">Complete Privacy</h3>
-                                <p className="text-muted-foreground">
+                                <h3 className="mb-3 text-xl font-semibold transition-colors group-hover:text-primary sm:mb-4 sm:text-2xl">
+                                    Complete Privacy
+                                </h3>
+                                <p className="mb-4 leading-relaxed text-muted-foreground sm:mb-6">
                                     Zero tracking, no IP logging, no personal data collection. Your files are secured with cryptographic IDs.
                                 </p>
-                                <div className="mt-4 space-y-2 text-sm">
-                                    <div className="flex justify-between">
+                                <div className="space-y-2 text-sm sm:space-y-3">
+                                    <div className="flex cursor-default items-center justify-between rounded px-2 py-1 transition-colors hover:bg-secondary/50">
                                         <span>IP Logging:</span>
                                         <span className="font-semibold text-green-500">None</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex cursor-default items-center justify-between rounded px-2 py-1 transition-colors hover:bg-secondary/50">
                                         <span>User Tracking:</span>
                                         <span className="font-semibold text-green-500">None</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex cursor-default items-center justify-between rounded px-2 py-1 transition-colors hover:bg-secondary/50">
                                         <span>Analytics:</span>
                                         <span className="font-semibold text-green-500">None</span>
                                     </div>
@@ -139,27 +161,29 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                             </Card>
 
                             {/* Simplicity Feature */}
-                            <Card className="p-6 text-center">
-                                <div className="mb-4 flex justify-center">
-                                    <div className="bg-gradient-primary flex h-16 w-16 items-center justify-center rounded-full">
-                                        <CheckCircle className="h-8 w-8 text-white" />
+                            <Card className="card-interactive hover-lift group p-6 text-center sm:p-8 md:col-span-2 lg:col-span-1">
+                                <div className="mb-4 flex justify-center sm:mb-6">
+                                    <div className="bg-gradient-primary gradient-hover group-hover:pulse-glow flex h-16 w-16 items-center justify-center rounded-full transition-all duration-300 sm:h-20 sm:w-20">
+                                        <CheckCircle className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110 sm:h-10 sm:w-10" />
                                     </div>
                                 </div>
-                                <h3 className="mb-3 text-xl font-semibold">Radical Simplicity</h3>
-                                <p className="text-muted-foreground">
+                                <h3 className="mb-3 text-xl font-semibold transition-colors group-hover:text-primary sm:mb-4 sm:text-2xl">
+                                    Radical Simplicity
+                                </h3>
+                                <p className="mb-4 leading-relaxed text-muted-foreground sm:mb-6">
                                     No registration, no accounts, no complexity. Just drag, drop, and share. Get your download link instantly with
                                     preview and direct download options.
                                 </p>
-                                <div className="mt-4 space-y-2 text-sm">
-                                    <div className="flex justify-between">
+                                <div className="space-y-2 text-sm sm:space-y-3">
+                                    <div className="flex cursor-default items-center justify-between rounded px-2 py-1 transition-colors hover:bg-secondary/50">
                                         <span>Registration:</span>
                                         <span className="font-semibold text-green-500">Not Required</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex cursor-default items-center justify-between rounded px-2 py-1 transition-colors hover:bg-secondary/50">
                                         <span>Setup Time:</span>
                                         <span className="font-semibold text-primary">0 seconds</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex cursor-default items-center justify-between rounded px-2 py-1 transition-colors hover:bg-secondary/50">
                                         <span>Complexity:</span>
                                         <span className="font-semibold text-green-500">Zero</span>
                                     </div>
@@ -170,43 +194,71 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                 </section>
 
                 {/* API Section */}
-                <section id="api" className="mb-16">
-                    <div className="mx-auto max-w-4xl">
-                        <h2 className="mb-8 text-center text-3xl font-bold">Developer API</h2>
+                <section id="api" className="mb-16 sm:mb-20 lg:mb-24">
+                    <div className="mx-auto max-w-6xl">
+                        <h2 className="text-responsive-lg mb-8 text-center font-bold sm:mb-12 lg:mb-16">
+                            Developer <span className="gradient-primary-text">API</span>
+                        </h2>
 
-                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
                             {/* Upload Example */}
-                            <Card className="p-6">
-                                <h3 className="mb-4 text-xl font-semibold">Upload via curl</h3>
-                                <div className="rounded-lg bg-secondary p-4">
-                                    <code className="text-sm">
-                                        curl -X POST \<br />
-                                        &nbsp;&nbsp;-F "file=@example.pdf" \<br />
-                                        &nbsp;&nbsp;{typeof window !== 'undefined' ? window.location.origin : ''}/api/upload
+                            <Card className="card-interactive hover-lift group p-6 sm:p-8">
+                                <h3 className="mb-4 text-xl font-semibold transition-colors group-hover:text-primary sm:mb-6 sm:text-2xl">
+                                    Upload via curl
+                                </h3>
+                                <div className="cursor-pointer rounded-lg bg-secondary/80 p-4 transition-colors duration-200 group-hover:scale-[1.02] hover:bg-secondary sm:p-6">
+                                    <code className="font-mono text-sm leading-relaxed sm:text-base">
+                                        <span className="text-primary">curl</span> -X POST \<br />
+                                        &nbsp;&nbsp;-F <span className="text-green-400">"file=@example.pdf"</span> \<br />
+                                        &nbsp;&nbsp;
+                                        <span className="text-blue-400">
+                                            {typeof window !== 'undefined' ? window.location.origin : ''}/api/upload
+                                        </span>
                                     </code>
                                 </div>
-                                <p className="mt-4 text-sm text-muted-foreground">
-                                    Returns JSON with file_id and download_url for immediate sharing.
+                                <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:mt-6 sm:text-base">
+                                    Returns JSON with <span className="font-medium text-primary">file_id</span> and{' '}
+                                    <span className="font-medium text-primary">download_url</span> for immediate sharing.
                                 </p>
                             </Card>
 
                             {/* Download Example */}
-                            <Card className="p-6">
-                                <h3 className="mb-4 text-xl font-semibold">Download Files</h3>
-                                <div className="rounded-lg bg-secondary p-4">
-                                    <code className="text-sm">
-                                        curl -O \<br />
-                                        &nbsp;&nbsp;{typeof window !== 'undefined' ? window.location.origin : ''}/f/[file_id]
+                            <Card className="card-interactive hover-lift group p-6 sm:p-8">
+                                <h3 className="mb-4 text-xl font-semibold transition-colors group-hover:text-primary sm:mb-6 sm:text-2xl">
+                                    Download Files
+                                </h3>
+                                <div className="cursor-pointer rounded-lg bg-secondary/80 p-4 transition-colors duration-200 group-hover:scale-[1.02] hover:bg-secondary sm:p-6">
+                                    <code className="font-mono text-sm leading-relaxed sm:text-base">
+                                        <span className="text-primary">curl</span> -O \<br />
+                                        &nbsp;&nbsp;
+                                        <span className="text-blue-400">
+                                            {typeof window !== 'undefined' ? window.location.origin : ''}/f/[file_id]
+                                        </span>
                                     </code>
                                 </div>
-                                <p className="mt-4 text-sm text-muted-foreground">Direct download with proper headers and range request support.</p>
+                                <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:mt-6 sm:text-base">
+                                    Direct download with proper headers and <span className="font-medium text-primary">range request</span> support.
+                                </p>
                             </Card>
                         </div>
 
-                        <div className="mt-8 text-center">
-                            <Button variant="outline" asChild>
-                                <a href="/docs/api" target="_blank" rel="noopener noreferrer">
-                                    View Full API Documentation
+                        <div className="mt-8 text-center sm:mt-12">
+                            <Button variant="outline" asChild className="btn-hover-scale focus-ring cursor-pointer">
+                                <a href="/docs/api" target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2">
+                                    <span>View Full API Documentation</span>
+                                    <svg
+                                        className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                        />
+                                    </svg>
                                 </a>
                             </Button>
                         </div>
@@ -215,24 +267,66 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
 
                 {/* Recent Uploads (if any) */}
                 {uploadedFiles.length > 0 && (
-                    <section className="mb-16">
-                        <div className="mx-auto max-w-4xl">
-                            <h2 className="mb-8 text-center text-2xl font-bold">Your Recent Uploads</h2>
-                            <div className="space-y-4">
-                                {uploadedFiles.map((fileId) => (
-                                    <Card key={fileId} className="p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="font-medium">File ID: {fileId}</p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Download URL: {typeof window !== 'undefined' ? window.location.origin : ''}/f/{fileId}
+                    <section className="slide-in-up mb-16 sm:mb-20 lg:mb-24">
+                        <div className="mx-auto max-w-5xl">
+                            <h2 className="text-responsive-lg mb-8 text-center font-bold sm:mb-12">
+                                Your Recent <span className="gradient-primary-text">Uploads</span>
+                            </h2>
+                            <div className="space-y-4 sm:space-y-6">
+                                {uploadedFiles.map((fileId, index) => (
+                                    <Card
+                                        key={fileId}
+                                        className={`card-interactive hover-lift p-4 fade-in sm:p-6`}
+                                        style={{ animationDelay: `${index * 0.1}s` }}
+                                    >
+                                        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="mb-2 text-lg font-medium">
+                                                    File ID: <span className="font-mono text-primary">{fileId}</span>
+                                                </p>
+                                                <p className="text-sm break-all text-muted-foreground">
+                                                    <span className="font-medium">Download URL:</span>
+                                                    <span className="ml-2 text-primary">
+                                                        {typeof window !== 'undefined' ? window.location.origin : ''}/f/{fileId}
+                                                    </span>
                                                 </p>
                                             </div>
-                                            <Button variant="outline" asChild>
-                                                <a href={`/file/${fileId}`} target="_blank" rel="noopener noreferrer">
-                                                    View Details
-                                                </a>
-                                            </Button>
+                                            <div className="flex gap-2 sm:gap-3">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    asChild
+                                                    className="btn-hover-scale focus-ring cursor-pointer"
+                                                    onClick={() =>
+                                                        navigator.clipboard.writeText(
+                                                            `${typeof window !== 'undefined' ? window.location.origin : ''}/f/${fileId}`,
+                                                        )
+                                                    }
+                                                >
+                                                    <button type="button" className="inline-flex items-center space-x-2">
+                                                        <Copy className="h-4 w-4" />
+                                                        <span>Copy</span>
+                                                    </button>
+                                                </Button>
+                                                <Button variant="outline" size="sm" asChild className="btn-hover-scale focus-ring cursor-pointer">
+                                                    <a
+                                                        href={`/file/${fileId}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center space-x-2"
+                                                    >
+                                                        <span>View Details</span>
+                                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                                            />
+                                                        </svg>
+                                                    </a>
+                                                </Button>
+                                            </div>
                                         </div>
                                     </Card>
                                 ))}

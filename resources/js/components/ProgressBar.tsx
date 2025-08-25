@@ -180,24 +180,38 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
                     className={cn(sizeClasses.progress, 'transition-all duration-300', animated && isAnimating && 'transition-none')}
                 />
 
-                {/* Custom progress indicator with color */}
+                {/* Custom progress indicator with color and enhanced animations */}
                 <div
                     className={cn(
-                        'progress-indicator absolute top-0 left-0 h-full rounded-full transition-all duration-300',
+                        'progress-indicator progress-bar absolute top-0 left-0 h-full rounded-full transition-all duration-300',
                         progressColor,
                         animated && isAnimating && 'transition-none',
+                        status === 'loading' && 'progress-bar',
                     )}
                     style={{ '--progress-width': `${displayValue}%` } as React.CSSProperties}
                 />
 
-                {/* Animated shimmer effect for loading state */}
+                {/* Enhanced shimmer effect for loading state */}
                 {status === 'loading' && animated && (
                     <div
                         className="shimmer-container absolute top-0 left-0 h-full overflow-hidden rounded-full"
                         style={{ '--shimmer-width': `${displayValue}%` } as React.CSSProperties}
                     >
-                        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                        <div className="progress-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
                     </div>
+                )}
+
+                {/* Glow effect for active progress */}
+                {status === 'loading' && displayValue > 0 && (
+                    <div
+                        className="absolute top-0 left-0 h-full rounded-full opacity-50 blur-sm"
+                        style={{
+                            width: `${displayValue}%`,
+                            background: 'linear-gradient(90deg, #ff6b35, #f7931e)',
+                            animation: 'pulse 2s infinite',
+                        }}
+                    />
                 )}
             </div>
 

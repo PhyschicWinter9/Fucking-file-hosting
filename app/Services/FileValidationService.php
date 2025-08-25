@@ -7,27 +7,49 @@ use Illuminate\Http\UploadedFile;
 class FileValidationService
 {
     /**
-     * Get maximum file size from config.
-     */
-    private function getMaxFileSizeFromConfig(): int
-    {
-        return config('filehosting.max_file_size', 104857600); // Default 100MB
-    }
-
-    /**
      * Dangerous file extensions that should be blocked.
      */
-    private const array DANGEROUS_EXTENSIONS = [
-        'exe', 'bat', 'cmd', 'com', 'pif', 'scr', 'vbs', 'js', 'jar',
-        'php', 'php3', 'php4', 'php5', 'phtml', 'asp', 'aspx', 'jsp',
-        'sh', 'bash', 'csh', 'ksh', 'zsh', 'pl', 'py', 'rb', 'ps1',
-        'msi', 'deb', 'rpm', 'dmg', 'pkg', 'app', 'ipa', 'apk',
+    const DANGEROUS_EXTENSIONS = [
+        'exe',
+        'bat',
+        'cmd',
+        'com',
+        'pif',
+        'scr',
+        'vbs',
+        'js',
+        'jar',
+        'php',
+        'php3',
+        'php4',
+        'php5',
+        'phtml',
+        'asp',
+        'aspx',
+        'jsp',
+        'sh',
+        'bash',
+        'csh',
+        'ksh',
+        'zsh',
+        'pl',
+        'py',
+        'rb',
+        'ps1',
+        'msi',
+        'deb',
+        'rpm',
+        'dmg',
+        'pkg',
+        'app',
+        'ipa',
+        'apk',
     ];
 
     /**
      * Dangerous MIME types that should be blocked.
      */
-    private const array DANGEROUS_MIME_TYPES = [
+    const DANGEROUS_MIME_TYPES = [
         'application/x-executable',
         'application/x-msdownload',
         'application/x-msdos-program',
@@ -43,6 +65,14 @@ class FileValidationService
         'text/x-shellscript',
         'application/x-sh',
     ];
+
+    /**
+     * Get maximum file size from config.
+     */
+    private function getMaxFileSizeFromConfig(): int
+    {
+        return config('filehosting.max_file_size', 104857600); // Default 100MB
+    }
 
     /**
      * Validate uploaded file comprehensively.
@@ -209,8 +239,10 @@ class FileValidationService
         $detectedMime = $this->detectMimeType($file);
 
         // Check for dangerous MIME types
-        if (in_array($reportedMime, self::DANGEROUS_MIME_TYPES) ||
-            in_array($detectedMime, self::DANGEROUS_MIME_TYPES)) {
+        if (
+            in_array($reportedMime, self::DANGEROUS_MIME_TYPES) ||
+            in_array($detectedMime, self::DANGEROUS_MIME_TYPES)
+        ) {
             return [
                 'valid' => false,
                 'error' => [
@@ -335,7 +367,8 @@ class FileValidationService
 
         return ['valid' => true];
     }
-   /**
+
+    /**
      * Detect actual MIME type using file content.
      */
     private function detectMimeType(UploadedFile $file): string
@@ -379,7 +412,16 @@ class FileValidationService
         // Check if second-to-last part is a known extension
         $secondExt = strtolower($parts[count($parts) - 2]);
         $commonExtensions = [
-            'txt', 'doc', 'pdf', 'jpg', 'png', 'gif', 'mp3', 'mp4', 'zip', 'rar'
+            'txt',
+            'doc',
+            'pdf',
+            'jpg',
+            'png',
+            'gif',
+            'mp3',
+            'mp4',
+            'zip',
+            'rar'
         ];
 
         return in_array($secondExt, $commonExtensions);
@@ -398,8 +440,10 @@ class FileValidationService
             'image/jpg' => ['image/jpeg'],
         ];
 
-        if (isset($allowedMismatches[$reported]) &&
-            in_array($detected, $allowedMismatches[$reported])) {
+        if (
+            isset($allowedMismatches[$reported]) &&
+            in_array($detected, $allowedMismatches[$reported])
+        ) {
             return false;
         }
 
@@ -443,33 +487,7 @@ class FileValidationService
      */
     private function containsScriptContent(string $content, string $mimeType): bool
     {
-        // Skip check for files that are supposed to contain scripts
-        $scriptMimeTypes = [
-            'text/html', 'text/javascript', 'application/javascript',
-            'text/x-php', 'application/x-php', 'text/x-python',
-            'text/x-shellscript', 'application/x-sh'
-        ];
-
-        if (in_array($mimeType, $scriptMimeTypes)) {
-            return false;
-        }
-
-        $scriptPatterns = [
-            '/<script[^>]*>/i',
-            '/<\?php/i',
-            '/#!/i',
-            '/eval\s*\(/i',
-            '/exec\s*\(/i',
-            '/system\s*\(/i',
-            '/shell_exec\s*\(/i',
-        ];
-
-        foreach ($scriptPatterns as $pattern) {
-            if (preg_match($pattern, $content)) {
-                return true;
-            }
-        }
-
+        // Skip all script content validation - allow all file types
         return false;
     }
 
@@ -479,10 +497,16 @@ class FileValidationService
     private function containsPathTraversal(string $filename): bool
     {
         $dangerousPatterns = [
-            '../', '..\\', '..%2F', '..%5C',
-            '%2E%2E%2F', '%2E%2E%5C',
-            '..../', '....\\',
-            '.%2E/', '.%2E\\',
+            '../',
+            '..\\',
+            '..%2F',
+            '..%5C',
+            '%2E%2E%2F',
+            '%2E%2E%5C',
+            '..../',
+            '....\\',
+            '.%2E/',
+            '.%2E\\',
         ];
 
         $filename = urldecode($filename);
@@ -560,6 +584,7 @@ class FileValidationService
 
     /**
      * Validate chunk for chunked uploads.
+     * Note: Chunks are fragments of larger files and should not be validated for content security.
      */
     public function validateChunk(UploadedFile $chunk, int $expectedSize): array
     {
@@ -579,12 +604,19 @@ class FileValidationService
             ];
         }
 
-        // Basic validation for chunk content
-        $contentValidation = $this->validateFileContent($chunk);
-        if (!$contentValidation['valid']) {
-            return $contentValidation;
+        // Only validate that the chunk is readable
+        if ($chunkSize === 0) {
+            return [
+                'valid' => false,
+                'error' => [
+                    'code' => 'EMPTY_CHUNK',
+                    'message' => 'Chunk is empty',
+                ]
+            ];
         }
 
+        // Chunks are fragments of larger files, so we don't validate content security
+        // The final assembled file will be validated after all chunks are assembled
         return ['valid' => true];
     }
 

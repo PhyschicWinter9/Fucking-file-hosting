@@ -53,7 +53,7 @@ class UploadSession extends Model
             }
         }
         
-        return $totalChunks; // All chunks uploaded
+        return (int)$totalChunks; // All chunks uploaded
     }
 
     /**
