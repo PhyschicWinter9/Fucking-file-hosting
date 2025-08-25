@@ -379,7 +379,12 @@ HTACCESS;
     {
         $isDevelopment = config('app.env') === 'local' || config('app.debug');
 
-        if ($isDevelopment) {
+        // Check if we're running Vite dev server (for debugging in production)
+        $isViteDevMode = request()->getHost() === '127.0.0.1' ||
+                        request()->getHost() === 'localhost' ||
+                        str_contains(request()->getHost(), 'localhost');
+
+        if ($isDevelopment || $isViteDevMode) {
             // Development-friendly CSP
             return implode('; ', [
                 "default-src 'self'",
