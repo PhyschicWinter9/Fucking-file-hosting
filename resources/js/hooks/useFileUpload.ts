@@ -30,6 +30,7 @@ interface UploadState {
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DEFAULT_CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunks (matches backend default)
 const MAX_RETRIES = 3;
 const CHUNKED_UPLOAD_THRESHOLD = 25 * 1024 * 1024; // 25MB (Cloudflare compatibility)

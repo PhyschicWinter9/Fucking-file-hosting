@@ -641,8 +641,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             {/* Main upload area */}
             <Card
                 className={cn(
-                    'upload-zone transition-all-smooth focus-ring relative',
-                    'hover:scale-[1.01] hover:border-primary/50 hover:bg-primary/5',
+                    'upload-zone transition-all-smooth relative',
+                    'hover:border-primary/50 hover:bg-primary/5',
                     isDragOver && 'drag-over scale-[1.02] border-primary bg-primary/10',
                     disabled && 'cursor-not-allowed opacity-50',
                     isUploading && 'pulse-glow cursor-not-allowed',
@@ -717,7 +717,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                             variant="outline"
                             disabled={disabled || isUploading}
                             className={cn(
-                                'btn-hover-scale focus-ring mb-4 sm:mb-6 lg:mb-8',
+                                'btn-hover-scale mb-4 sm:mb-6 lg:mb-8',
                                 'px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base',
                                 isDragOver && 'scale-105 border-primary bg-primary text-primary-foreground',
                             )}
@@ -746,7 +746,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                                 <SelectTrigger className="focus-ring w-48 cursor-pointer transition-colors hover:bg-secondary/50 sm:w-56">
                                     <SelectValue placeholder="Select expiration" />
                                 </SelectTrigger>
-                                <SelectContent className="border-border bg-card">
+                                <SelectContent className="border-border bg-card text-foreground">
                                     <SelectItem value="1" className="cursor-pointer hover:bg-secondary/50">
                                         1 day
                                     </SelectItem>
@@ -831,9 +831,11 @@ interface FileUploadItemProps {
     state: FileUploadState;
     onCancel: () => void;
     onRemove: () => void;
+    className?: string;
+    style?: React.CSSProperties;
 }
 
-const FileUploadItem: React.FC<FileUploadItemProps> = ({ state, onCancel, onRemove }) => {
+const FileUploadItem: React.FC<FileUploadItemProps> = ({ state, onCancel, onRemove, className, style }) => {
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
@@ -855,7 +857,7 @@ const FileUploadItem: React.FC<FileUploadItemProps> = ({ state, onCancel, onRemo
     };
 
     return (
-        <Card className="p-4">
+        <Card className={`p-4 ${className}`} style={style}>
             <div className="mb-2 flex items-center justify-between">
                 <div className="flex min-w-0 flex-1 items-center space-x-2">
                     <File className="h-4 w-4 flex-shrink-0" />

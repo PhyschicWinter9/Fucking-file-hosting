@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useToast } from './useToast';
 
 interface UseClipboardOptions {
@@ -29,9 +29,9 @@ const defaultOptions: Required<UseClipboardOptions> = {
 export function useClipboard(options: UseClipboardOptions = {}): UseClipboardReturn {
     const [copied, setCopied] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const timeoutRef = useRef<NodeJS.Timeout>();
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const { toast } = useToast();
-    
+
     const opts = { ...defaultOptions, ...options };
 
     // Check if clipboard API is supported
@@ -50,7 +50,7 @@ export function useClipboard(options: UseClipboardOptions = {}): UseClipboardRet
             const error = new Error('Clipboard not supported');
             setError(opts.errorMessage);
             opts.onError(error);
-            
+
             if (opts.showToast) {
                 toast({
                     title: 'Error',
@@ -58,7 +58,7 @@ export function useClipboard(options: UseClipboardOptions = {}): UseClipboardRet
                     variant: 'destructive',
                 });
             }
-            
+
             return false;
         }
 
@@ -82,10 +82,10 @@ export function useClipboard(options: UseClipboardOptions = {}): UseClipboardRet
             // Set success state
             setCopied(true);
             setError(null);
-            
+
             // Call success callback
             opts.onSuccess(text);
-            
+
             // Show success toast
             if (opts.showToast) {
                 toast({
@@ -102,15 +102,15 @@ export function useClipboard(options: UseClipboardOptions = {}): UseClipboardRet
 
             return true;
 
-        } catch (err: any) {
+        } catch (err) {
             const error = err instanceof Error ? err : new Error('Copy failed');
-            
+
             setCopied(false);
             setError(opts.errorMessage);
-            
+
             // Call error callback
             opts.onError(error);
-            
+
             // Show error toast
             if (opts.showToast) {
                 toast({
@@ -153,17 +153,17 @@ async function copyTextFallback(text: string): Promise<void> {
         textarea.style.left = '-999999px';
         textarea.style.top = '-999999px';
         textarea.setAttribute('readonly', '');
-        
+
         document.body.appendChild(textarea);
-        
+
         try {
             // Select the text
             textarea.select();
             textarea.setSelectionRange(0, 99999); // For mobile devices
-            
+
             // Copy the text
             const successful = document.execCommand('copy');
-            
+
             if (successful) {
                 resolve();
             } else {
@@ -221,7 +221,7 @@ export function useFileUrlClipboard() {
 export function useAdvancedClipboard() {
     const [copied, setCopied] = useState<string | null>(null); // Track what was copied
     const [error, setError] = useState<string | null>(null);
-    const timeoutRef = useRef<NodeJS.Timeout>();
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const { toast } = useToast();
 
     const isSupported = Boolean(
@@ -247,7 +247,7 @@ export function useAdvancedClipboard() {
 
         if (!isSupported) {
             setError(errorMessage);
-            
+
             if (showToast) {
                 toast({
                     title: 'Error',
@@ -255,7 +255,7 @@ export function useAdvancedClipboard() {
                     variant: 'destructive',
                 });
             }
-            
+
             return false;
         }
 
@@ -276,7 +276,7 @@ export function useAdvancedClipboard() {
             // Set success state
             setCopied(identifier);
             setError(null);
-            
+
             // Show success toast
             if (showToast) {
                 toast({
@@ -293,10 +293,10 @@ export function useAdvancedClipboard() {
 
             return true;
 
-        } catch (err: any) {
+        } catch  {
             setCopied(null);
             setError(errorMessage);
-            
+
             // Show error toast
             if (showToast) {
                 toast({
