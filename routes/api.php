@@ -22,6 +22,8 @@ Route::middleware(['throttle:chunked-uploads', \App\Http\Middleware\BypassPostSi
         ->name('api.upload.init');
     Route::post('/upload/chunk', [FileUploadController::class, 'chunkedUpload'])->name('api.upload.chunk');
     Route::post('/upload/finalize', [FileUploadController::class, 'finalizeUpload'])->name('api.upload.finalize');
+    Route::get('/upload/session/{sessionId}', [FileUploadController::class, 'getSessionDetails'])->name('api.upload.session');
+    Route::get('/upload/metrics', [FileUploadController::class, 'getUploadMetrics'])->name('api.upload.metrics');
 });
 
 // File management endpoints with general rate limiting

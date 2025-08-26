@@ -1,7 +1,7 @@
 export interface UploadProgress {
   file: File;
   progress: number;
-  status: 'pending' | 'uploading' | 'completed' | 'error' | 'cancelled';
+  status: 'pending' | 'uploading' | 'completed' | 'error' | 'cancelled' | 'paused';
   error?: string;
   uploaded_bytes: number;
   total_bytes: number;

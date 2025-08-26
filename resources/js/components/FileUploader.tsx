@@ -3,11 +3,12 @@ import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
 import { FileValidation, UploadProgress } from '@/types/upload';
-import { Clock, Copy, File, LoaderCircle, Upload, X } from 'lucide-react';
+import { Clock, LoaderCircle, Upload } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import ProgressBar from './ProgressBar';
+import EnhancedUploadProgress from './EnhancedUploadProgress';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import UploadStatistics from './UploadStatistics';
 import UploadSuccess from './UploadSuccess';
 
 interface FileUploaderProps {
@@ -29,7 +30,7 @@ interface FileUploaderProps {
 interface FileUploadState {
     file: File;
     progress: number;
-    status: 'pending' | 'uploading' | 'completed' | 'error' | 'cancelled';
+    status: 'pending' | 'uploading' | 'completed' | 'error' | 'cancelled' | 'paused';
     error?: string;
     fileId?: string;
     downloadUrl?: string;
@@ -43,6 +44,15 @@ interface FileUploadState {
     spaceSaved?: number;
     abortController?: AbortController;
     xhr?: XMLHttpRequest;
+    isChunked?: boolean;
+    chunkInfo?: {
+        currentChunk: number;
+        totalChunks: number;
+        chunkSize: number;
+        sessionId?: string;
+    };
+    startTime?: number;
+    lastProgressTime?: number;
 }
 
 interface CompletedFile {
@@ -161,10 +171,20 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             const chunkSize = 2 * 1024 * 1024;
             const totalChunks = Math.ceil(file.size / chunkSize);
             let uploadedChunks = 0;
+            const startTime = Date.now();
 
             // Create abort controller for this upload
             const abortController = new AbortController();
-            updateState({ abortController });
+            updateState({
+                abortController,
+                isChunked: true,
+                chunkInfo: {
+                    currentChunk: 0,
+                    totalChunks,
+                    chunkSize,
+                },
+                startTime,
+            });
 
             const initResponse = await fetch('/api/upload/init', {
                 method: 'POST',
@@ -193,6 +213,16 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
             const { session_id } = initData.data;
 
+            // Update chunk info with session ID
+            updateState({
+                chunkInfo: {
+                    currentChunk: 0,
+                    totalChunks,
+                    chunkSize,
+                    sessionId: session_id,
+                },
+            });
+
             for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
                 // Check if upload was cancelled
                 if (abortController.signal.aborted) {
@@ -202,6 +232,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                 const start = chunkIndex * chunkSize;
                 const end = Math.min(start + chunkSize, file.size);
                 const chunk = file.slice(start, end);
+
+                // const chunkStartTime = Date.now();
 
                 const formData = new FormData();
                 formData.append('session_id', session_id);
@@ -223,11 +255,28 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
                 uploadedChunks++;
                 const progress = (uploadedChunks / totalChunks) * 100;
-                const uploadedBytes = uploadedChunks * chunkSize;
+                const uploadedBytes = Math.min(uploadedChunks * chunkSize, file.size);
+
+                // Calculate speed and ETA
+                const currentTime = Date.now();
+                const elapsedTime = (currentTime - startTime) / 1000; // in seconds
+                // const chunkTime = (currentTime - chunkStartTime) / 1000;
+                const speed = elapsedTime > 0 ? uploadedBytes / elapsedTime : 0;
+                const remainingBytes = file.size - uploadedBytes;
+                const eta = speed > 0 ? remainingBytes / speed : 0;
 
                 updateState({
                     progress,
-                    uploadedBytes: Math.min(uploadedBytes, file.size),
+                    uploadedBytes,
+                    speed,
+                    eta,
+                    chunkInfo: {
+                        currentChunk: uploadedChunks,
+                        totalChunks,
+                        chunkSize,
+                        sessionId: session_id,
+                    },
+                    lastProgressTime: currentTime,
                 });
             }
 
@@ -238,7 +287,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             });
 
             // Show toast for large files
-            if (file.size > 100 * 1024 * 1024) { // 100MB
+            if (file.size > 100 * 1024 * 1024) {
+                // 100MB
                 toast({
                     title: 'Processing Large File',
                     description: 'Finalizing upload... This may take a few minutes for very large files.',
@@ -261,9 +311,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
             if (!finalizeResponse.ok) {
                 if (finalizeResponse.status === 524) {
-                    throw new Error('Upload finalization timed out. This can happen with very large files. Please try again or contact support if the issue persists.');
+                    throw new Error(
+                        'Upload finalization timed out. This can happen with very large files. Please try again or contact support if the issue persists.',
+                    );
                 }
-                
+
                 // Try to get error details from response
                 try {
                     const errorData = await finalizeResponse.json();
@@ -298,24 +350,31 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             }
 
             const xhr = new XMLHttpRequest();
-            
+            const startTime = Date.now();
+
             // Store xhr reference for cancellation
-            updateState({ xhr });
+            updateState({
+                xhr,
+                isChunked: false,
+                startTime,
+            });
 
             return new Promise((resolve, reject) => {
-                const startTime = Date.now();
-
                 xhr.upload.addEventListener('progress', (event) => {
                     if (event.lengthComputable) {
+                        const currentTime = Date.now();
+                        const elapsedTime = (currentTime - startTime) / 1000; // in seconds
                         const progress = (event.loaded / event.total) * 100;
-                        const speed = event.loaded / ((Date.now() - startTime) / 1000);
-                        const eta = (event.total - event.loaded) / speed;
+                        const speed = elapsedTime > 0 ? event.loaded / elapsedTime : 0;
+                        const remainingBytes = event.total - event.loaded;
+                        const eta = speed > 0 ? remainingBytes / speed : 0;
 
                         updateState({
                             progress,
                             uploadedBytes: event.loaded,
                             speed,
                             eta,
+                            lastProgressTime: currentTime,
                         });
 
                         // Call progress callback
@@ -421,7 +480,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                     });
                     return; // Don't throw for cancelled uploads
                 }
-                
+
                 const errorMessage = error instanceof Error ? error.message : 'Upload failed';
                 updateState({
                     status: 'error',
@@ -639,6 +698,61 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         }, 100);
     };
 
+    // Pause/Resume upload
+    const pauseResumeUpload = (index: number) => {
+        setUploadStates((prev) => {
+            const newStates = prev.map((state, i) => {
+                if (i === index) {
+                    if (state.status === 'uploading') {
+                        // Pause upload
+                        if (state.abortController) {
+                            state.abortController.abort();
+                        }
+                        if (state.xhr) {
+                            state.xhr.abort();
+                        }
+                        return { ...state, status: 'paused' as const };
+                    } else if (state.status === 'paused') {
+                        // Resume upload - this would need to be implemented with resume logic
+                        return { ...state, status: 'pending' as const };
+                    }
+                }
+                return state;
+            });
+            return newStates;
+        });
+    };
+
+    // Retry upload
+    const retryUpload = async (index: number) => {
+        const state = uploadStates[index];
+        if (!state || state.status !== 'error') return;
+
+        // Reset state to pending
+        setUploadStates((prev) =>
+            prev.map((s, i) =>
+                i === index
+                    ? {
+                          ...s,
+                          status: 'pending' as const,
+                          progress: 0,
+                          error: undefined,
+                          uploadedBytes: 0,
+                          speed: undefined,
+                          eta: undefined,
+                      }
+                    : s,
+            ),
+        );
+
+        // Restart upload
+        try {
+            await uploadFile(state.file, index);
+        } catch (error) {
+            console.error('Retry failed:', error);
+        }
+    };
+
     // Remove file from list
     const removeFile = (index: number) => {
         setUploadStates((prev) => {
@@ -760,7 +874,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
     // Show success component if upload is complete
     if (showSuccess && completedFiles.length > 0) {
-        console.log('Showing success with files:', completedFiles);
         return (
             <div className={cn('w-full', className)}>
                 <UploadSuccess files={completedFiles} onNewUpload={resetUploader} className="space-y-6" />
@@ -772,174 +885,121 @@ const FileUploader: React.FC<FileUploaderProps> = ({
         <div className={cn('w-full', className)}>
             {/* Main upload area */}
             <Card
-                className={`relative transition-all duration-300 ease-in-out ${isDragOver ? 'scale-[1.02] border-primary bg-primary/5 shadow-lg' : 'hover:border-primary/50 hover:shadow-md'} ${disabled ? 'cursor-not-allowed opacity-50' : ''} ${isUploading ? 'cursor-not-allowed' : 'cursor-pointer'} `}
-                style={{
-                    minHeight: 'clamp(400px, 50vh, 600px)',
-                    cursor: disabled || isUploading ? 'not-allowed' : isDragOver ? 'grabbing' : 'pointer',
-                }}
+                className={`relative transition-all duration-300 ease-in-out ${isDragOver ? 'scale-[1.02] border-primary bg-primary/5 shadow-lg' : 'hover:border-primary/50 hover:shadow-md'} ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 onClick={handleClick}
-                tabIndex={disabled || isUploading ? -1 : 0}
-                onKeyDown={(e) => {
-                    if ((e.key === 'Enter' || e.key === ' ') && !disabled && !isUploading) {
-                        e.preventDefault();
-                        handleClick();
-                    }
-                }}
-                role="button"
-                aria-label={isDragOver ? 'Drop files to upload' : 'Click to select files or drag and drop files here'}
             >
-                <div className="flex h-full flex-col items-center justify-center p-6 text-center sm:p-8 lg:p-12">
-                    <div
-                        className={cn(
-                            'mb-4 rounded-full p-4 transition-all duration-300 sm:mb-6 sm:p-6 lg:mb-8',
-                            isDragOver ? 'pulse-glow scale-110 bg-primary text-primary-foreground' : 'bg-muted hover:scale-105 hover:bg-muted/80',
-                            isUploading && uploadStates.some((state) => state.status === 'uploading' || state.status === 'pending') && 'spinner',
-                        )}
-                    >
-                        {isUploading ? (
-                            // Loading spinner
-                            <LoaderCircle className="h-8 w-8 animate-spin sm:h-12 sm:w-12 lg:h-16 lg:w-16" />
-                        ) : (
-                            <Upload
-                                className={cn('transition-all duration-300', 'h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16', isDragOver && 'scale-110')}
-                            />
-                        )}
+                <div className="p-8 text-center">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                        <Upload className="h-6 w-6 text-primary" />
                     </div>
 
-                    <h3
-                        className={cn(
-                            'mb-2 font-semibold transition-all duration-300 sm:mb-4',
-                            'text-xl sm:text-2xl lg:text-3xl',
-                            isDragOver && 'scale-105 text-primary',
-                        )}
-                    >
-                        {isDragOver ? 'Drop files here' : isUploading ? 'Uploading...' : 'Upload your files'}
-                    </h3>
+                    <h3 className="mb-2 text-lg font-semibold">{isDragOver ? 'Drop files here' : 'Upload your files'}</h3>
 
-                    <p className="mb-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:mb-6 sm:text-base lg:mb-8 lg:max-w-lg">
-                        {isDragOver ? (
-                            'Release to start uploading'
-                        ) : isUploading ? (
-                            'Please wait while your files are being uploaded'
-                        ) : (
-                            <>
-                                <span className="block sm:inline">Drag and drop files here, or click to select files.</span>
-                                {maxFileSize && (
-                                    <span className="block sm:ml-1 sm:inline">
-                                        Maximum file size: <span className="font-medium text-primary">{formatFileSize(maxFileSize)}</span>
-                                    </span>
-                                )}
-                            </>
-                        )}
+                    <p className="mb-4 text-sm text-muted-foreground">
+                        {isDragOver
+                            ? 'Release to upload'
+                            : `Drag and drop files here, or click to browse. Max file size: ${formatFileSize(maxFileSize)}`}
                     </p>
 
-                    {!isUploading && (
-                        <Button
-                            variant="outline"
-                            disabled={disabled || isUploading}
-                            className={cn(
-                                'btn-hover-scale mb-4 sm:mb-6 lg:mb-8',
-                                'px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base',
-                                isDragOver && 'scale-105 border-primary bg-primary text-primary-foreground',
-                            )}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleClick();
-                            }}
-                        >
-                            <File className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                            Choose Files
-                        </Button>
-                    )}
+                    {/* File input */}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple={multiple}
+                        accept={allowedTypes?.join(',')}
+                        onChange={handleFileInputChange}
+                        className="hidden"
+                        disabled={disabled || isUploading}
+                    />
+
+                    {/* Upload button */}
+                    <Button
+                        variant="outline"
+                        disabled={disabled || isUploading}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleClick();
+                        }}
+                    >
+                        {isUploading ? (
+                            <>
+                                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading...
+                            </>
+                        ) : (
+                            <>
+                                <Upload className="mr-2 h-4 w-4" />
+                                Choose Files
+                            </>
+                        )}
+                    </Button>
 
                     {/* Expiration selector */}
                     {showExpirationSelector && !isUploading && (
-                        <div className="mb-4 flex flex-col items-center space-y-2 sm:mb-6 sm:space-y-3">
-                            <Label htmlFor="expiration-select" className="flex items-center text-sm font-medium sm:text-base">
-                                <Clock className="mr-2 h-4 w-4" />
-                                File Expiration
-                            </Label>
+                        <div className="col mt-4 flex flex-col content-center items-center justify-center space-x-2">
+                            {/* <Label htmlFor="expiration" className="text-sm">
+                               <Clock/> File expiration
+                            </Label> */}
+                            <div className="row flex items-center mb-2">
+                                <Clock size={16}/>
+                                <Label htmlFor="expiration" className="text-sm ml-2 ">
+                                    File expiration
+                                </Label>
+                            </div>
                             <Select
                                 value={expirationDays?.toString() || 'never'}
                                 onValueChange={(value) => setExpirationDays(value === 'never' ? null : parseInt(value))}
-                                disabled={disabled || isUploading}
                             >
-                                <SelectTrigger className="focus-ring w-48 cursor-pointer transition-colors hover:bg-secondary/50 sm:w-56">
-                                    <SelectValue placeholder="Select expiration" />
+                                <SelectTrigger className="w-32">
+                                    <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="border-border bg-[#101828] text-foreground">
-                                    <SelectItem value="1" className="cursor-pointer hover:bg-secondary/50">
-                                        1 day
-                                    </SelectItem>
-                                    <SelectItem value="7" className="cursor-pointer hover:bg-secondary/50">
-                                        7 days
-                                    </SelectItem>
-                                    <SelectItem value="14" className="cursor-pointer hover:bg-secondary/50">
-                                        14 days
-                                    </SelectItem>
-                                    <SelectItem value="30" className="cursor-pointer hover:bg-secondary/50">
-                                        30 days
-                                    </SelectItem>
+                                <SelectContent>
+                                    <SelectItem value="1">1 day</SelectItem>
+                                    <SelectItem value="7">7 days</SelectItem>
+                                    <SelectItem value="14">14 days</SelectItem>
+                                    <SelectItem value="30">30 days</SelectItem>
+                                    {/* <SelectItem value="90">90 days</SelectItem>
+                                    <SelectItem value="never">Never</SelectItem> */}
                                 </SelectContent>
                             </Select>
                         </div>
                     )}
-
-                    {allowedTypes && !isUploading && (
-                        <p className="text-xs text-muted-foreground sm:text-sm">
-                            <span className="font-medium">Allowed types:</span> {allowedTypes.join(', ')}
-                        </p>
-                    )}
-
-                    {/* Upload progress indicator */}
-                    {isUploading && uploadStates.some((state) => state.status === 'uploading' || state.status === 'pending') && (
-                        <div className="mt-4 w-full max-w-md">
-                            <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                                <div className="spinner h-4 w-4 rounded-full border-2 border-primary border-t-transparent"></div>
-                                <span>Processing your files...</span>
-                            </div>
-                        </div>
-                    )}
                 </div>
-
-                {/* Hidden file input */}
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple={multiple}
-                    onChange={handleFileInputChange}
-                    className="hidden"
-                    disabled={disabled || isUploading}
-                    aria-label={multiple ? 'Select files to upload' : 'Select file to upload'}
-                />
             </Card>
 
-            {/* Upload progress list */}
+            {/* Upload progress section */}
             {uploadStates.length > 0 && (
-                <div className="slide-in-up mt-6 space-y-4 sm:mt-8 sm:space-y-6 lg:mt-10">
-                    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                        <h4 className="text-lg font-semibold sm:text-xl">Upload Progress</h4>
-                        {enableBulkMode && uploadStates.length > 1 && (
+                <div className="mt-6 space-y-4">
+                    {/* Upload statistics */}
+                    {uploadStates.length > 1 && <BulkProgressSummary states={uploadStates} activeUploads={activeUploads} />}
+
+                    {/* Bulk actions */}
+                    {uploadStates.length > 1 && (
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold">Upload Progress</h3>
                             <BulkActions
                                 states={uploadStates}
                                 onCancelAll={cancelAllUploads}
                                 onRemoveCompleted={removeCompletedUploads}
                                 onRetryFailed={retryFailedUploads}
                             />
-                        )}
-                    </div>
-                    {enableBulkMode && uploadStates.length > 1 && <BulkProgressSummary states={uploadStates} activeUploads={activeUploads} />}
-                    <div className="space-y-3 sm:space-y-4">
+                        </div>
+                    )}
+
+                    {/* Individual file progress */}
+                    <div className="space-y-3">
                         {uploadStates.map((state, index) => (
                             <FileUploadItem
                                 key={`${state.file.name}-${index}`}
                                 state={state}
                                 onCancel={() => cancelUpload(index)}
                                 onRemove={() => removeFile(index)}
+                                onPauseResume={() => pauseResumeUpload(index)}
+                                onRetry={() => retryUpload(index)}
                                 className="fade-in"
                                 style={{ animationDelay: `${index * 0.1}s` }}
                             />
@@ -956,87 +1016,35 @@ interface FileUploadItemProps {
     state: FileUploadState;
     onCancel: () => void;
     onRemove: () => void;
+    onPauseResume?: () => void;
+    onRetry?: () => void;
     className?: string;
     style?: React.CSSProperties;
 }
 
-const FileUploadItem: React.FC<FileUploadItemProps> = ({ state, onCancel, onRemove, className, style }) => {
-    const formatFileSize = (bytes: number): string => {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
-
-    const formatSpeed = (bytesPerSecond?: number): string => {
-        if (!bytesPerSecond) return '';
-        return `${formatFileSize(bytesPerSecond)}/s`;
-    };
-
-    const formatETA = (seconds?: number): string => {
-        if (!seconds || seconds === Infinity) return '';
-        if (seconds < 60) return `${Math.round(seconds)}s`;
-        if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
-        return `${Math.round(seconds / 3600)}h`;
-    };
-
+const FileUploadItem: React.FC<FileUploadItemProps> = ({ state, onCancel, onRemove, onPauseResume, onRetry, className, style }) => {
     return (
-        <Card className={`p-4 ${className}`} style={style}>
-            <div className="mb-2 flex items-center justify-between">
-                <div className="flex min-w-0 flex-1 items-center space-x-2">
-                    <File className="h-4 w-4 flex-shrink-0" />
-                    <span className="truncate font-medium">{state.file.name}</span>
-                    <span className="flex-shrink-0 text-sm text-muted-foreground">{formatFileSize(state.file.size)}</span>
-                    {state.isDuplicate && (
-                        <div className="flex items-center space-x-1 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                            <Copy className="h-3 w-3" />
-                            <span>Duplicate</span>
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex items-center space-x-2">
-                    {state.status === 'uploading' && (
-                        <Button variant="ghost" size="sm" onClick={onCancel} className="h-8 w-8 p-0">
-                            <X className="h-4 w-4" />
-                        </Button>
-                    )}
-
-                    {(state.status === 'completed' || state.status === 'error' || state.status === 'cancelled') && (
-                        <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 w-8 p-0">
-                            <X className="h-4 w-4" />
-                        </Button>
-                    )}
-                </div>
-            </div>
-
-            {/* Progress bar */}
-            <ProgressBar
-                value={state.progress}
-                status={
-                    state.status === 'uploading'
-                        ? 'loading'
-                        : state.status === 'completed'
-                          ? 'success'
-                          : state.status === 'error'
-                            ? 'error'
-                            : state.status === 'cancelled'
-                              ? 'paused'
-                              : 'idle'
-                }
+        <div className={className} style={style}>
+            <EnhancedUploadProgress
+                file={state.file}
+                progress={state.progress}
+                status={state.status}
                 error={state.error}
-                showPercentage={true}
-                animated={true}
-                size="sm"
-                info={
-                    state.status === 'uploading' && (state.speed || state.eta)
-                        ? `${state.speed ? formatSpeed(state.speed) : ''} ${state.eta ? `• ETA: ${formatETA(state.eta)}` : ''}`.trim()
-                        : undefined
-                }
-                preserveProgressOnError={true}
+                uploadedBytes={state.uploadedBytes}
+                speed={state.speed}
+                eta={state.eta}
+                isChunked={state.isChunked}
+                chunkInfo={state.chunkInfo}
+                fileId={state.fileId}
+                downloadUrl={state.downloadUrl}
+                isDuplicate={state.isDuplicate}
+                spaceSaved={state.spaceSaved}
+                onCancel={onCancel}
+                onPauseResume={onPauseResume}
+                onRetry={onRetry}
+                onRemove={onRemove}
             />
-        </Card>
+        </div>
     );
 };
 
@@ -1084,70 +1092,36 @@ const BulkProgressSummary: React.FC<BulkProgressSummaryProps> = ({ states, activ
     const totalFiles = states.length;
     const completedFiles = states.filter((state) => state.status === 'completed').length;
     const failedFiles = states.filter((state) => state.status === 'error').length;
-    const uploadingFiles = states.filter((state) => state.status === 'uploading').length;
-    const pendingFiles = states.filter((state) => state.status === 'pending').length;
+    // const uploadingFiles = states.filter((state) => state.status === 'uploading').length;
 
     const totalBytes = states.reduce((sum, state) => sum + state.file.size, 0);
     const uploadedBytes = states.reduce((sum, state) => sum + state.uploadedBytes, 0);
-    const overallProgress = totalBytes > 0 ? (uploadedBytes / totalBytes) * 100 : 0;
 
-    const formatFileSize = (bytes: number): string => {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
+    // Calculate overall speed and ETA
+    const uploadingSpeeds = states.filter((state) => state.status === 'uploading' && state.speed).map((state) => state.speed!);
+    const overallSpeed = uploadingSpeeds.length > 0 ? uploadingSpeeds.reduce((sum, speed) => sum + speed, 0) : undefined;
+
+    const remainingBytes = totalBytes - uploadedBytes;
+    const overallEta = overallSpeed && overallSpeed > 0 ? remainingBytes / overallSpeed : undefined;
+
+    // Calculate chunked uploads and space saved
+    const chunkedUploads = states.filter((state) => state.isChunked).length;
+    const spaceSaved = states.reduce((sum, state) => sum + (state.spaceSaved || 0), 0);
 
     return (
-        <Card className="p-4">
-            <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Bulk Upload Progress</span>
-                    <span className="text-sm text-muted-foreground">
-                        {completedFiles}/{totalFiles} files completed
-                    </span>
-                </div>
-
-                <ProgressBar
-                    value={overallProgress}
-                    status={failedFiles > 0 ? 'error' : uploadingFiles > 0 ? 'loading' : completedFiles === totalFiles ? 'success' : 'idle'}
-                    showPercentage={true}
-                    animated={uploadingFiles > 0}
-                    size="sm"
-                />
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="space-y-1">
-                        <div className="flex justify-between">
-                            <span>Active uploads:</span>
-                            <span className="font-medium text-primary">{activeUploads}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Pending:</span>
-                            <span className="font-medium">{pendingFiles}</span>
-                        </div>
-                    </div>
-                    <div className="space-y-1">
-                        <div className="flex justify-between">
-                            <span>Completed:</span>
-                            <span className="font-medium text-green-600">{completedFiles}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Failed:</span>
-                            <span className="font-medium text-red-600">{failedFiles}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>
-                        {formatFileSize(uploadedBytes)} / {formatFileSize(totalBytes)}
-                    </span>
-                    <span>{Math.round(overallProgress)}% complete</span>
-                </div>
-            </div>
-        </Card>
+        <UploadStatistics
+            totalFiles={totalFiles}
+            completedFiles={completedFiles}
+            failedFiles={failedFiles}
+            activeUploads={activeUploads}
+            totalBytes={totalBytes}
+            uploadedBytes={uploadedBytes}
+            overallSpeed={overallSpeed}
+            overallEta={overallEta}
+            chunkedUploads={chunkedUploads}
+            spaceSaved={spaceSaved}
+            showDetailed={true}
+        />
     );
 };
 

@@ -615,4 +615,50 @@ class FileUploadController extends Controller
 
         return in_array($mimeType, $previewableMimes);
     }
+
+    /**
+     * Get detailed information about an upload session.
+     */
+    public function getSessionDetails(string $sessionId): JsonResponse
+    {
+        try {
+            $details = $this->chunkedUploadService->getSessionDetails($sessionId);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $details
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'SESSION_NOT_FOUND',
+                    'message' => $e->getMessage()
+                ]
+            ], 404);
+        }
+    }
+
+    /**
+     * Get real-time upload metrics and server performance data.
+     */
+    public function getUploadMetrics(): JsonResponse
+    {
+        try {
+            $metrics = $this->chunkedUploadService->getUploadMetrics();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $metrics
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'METRICS_ERROR',
+                    'message' => 'Failed to retrieve upload metrics'
+                ]
+            ], 500);
+        }
+    }
 }

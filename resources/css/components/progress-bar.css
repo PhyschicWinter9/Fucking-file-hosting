@@ -14,3 +14,236 @@
 .transform-gpu {
     transform: translateZ(0);
 }
+
+/* Enhanced Upload Progress Animations */
+.upload-progress-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.upload-progress-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Progress bar with gradient animation */
+.progress-gradient {
+    background: linear-gradient(90deg, #ff6b35, #f7931e);
+    background-size: 200% 100%;
+    animation: progress-flow 2s ease-in-out infinite;
+}
+
+@keyframes progress-flow {
+    0% {
+        background-position: -200% 0;
+    }
+    50% {
+        background-position: 0% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Speed indicator animation */
+.speed-indicator {
+    animation: speed-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes speed-pulse {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+/* Chunk progress visualization */
+.chunk-progress {
+    background: linear-gradient(90deg, 
+        rgba(255, 107, 53, 0.1) 0%, 
+        rgba(255, 107, 53, 0.3) 50%, 
+        rgba(255, 107, 53, 0.1) 100%
+    );
+    animation: chunk-flow 3s linear infinite;
+}
+
+@keyframes chunk-flow {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 100% 0;
+    }
+}
+
+/* Status badge animations */
+.status-badge {
+    transition: all 0.2s ease-in-out;
+}
+
+.status-badge.uploading {
+    animation: status-glow 2s ease-in-out infinite;
+}
+
+@keyframes status-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+    }
+}
+
+.status-badge.completed {
+    animation: status-success 0.5s ease-out;
+}
+
+@keyframes status-success {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.status-badge.error {
+    animation: status-error 0.3s ease-out;
+}
+
+@keyframes status-error {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-2px);
+    }
+    75% {
+        transform: translateX(2px);
+    }
+}
+
+/* Upload statistics animations */
+.upload-stats {
+    animation: stats-fade-in 0.5s ease-out;
+}
+
+@keyframes stats-fade-in {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Speed history chart animation */
+.speed-bar {
+    transition: height 0.3s ease-in-out;
+    animation: bar-grow 0.5s ease-out;
+}
+
+@keyframes bar-grow {
+    0% {
+        height: 0;
+        opacity: 0;
+    }
+    100% {
+        height: var(--bar-height, 0%);
+        opacity: 1;
+    }
+}
+
+/* Action button hover effects */
+.action-button {
+    transition: all 0.2s ease-in-out;
+}
+
+.action-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-button:active {
+    transform: scale(0.95);
+}
+
+/* File type icon animation */
+.file-icon {
+    animation: icon-bounce 0.6s ease-out;
+}
+
+@keyframes icon-bounce {
+    0% {
+        transform: scale(0.3) rotate(-10deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1) rotate(5deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* Enhanced shimmer effect */
+.enhanced-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.enhanced-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+    );
+    animation: shimmer-slide 2s infinite;
+}
+
+@keyframes shimmer-slide {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .upload-progress-card {
+        margin: 0 -1rem;
+    }
+    
+    .upload-progress-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .action-button:hover {
+        transform: none;
+    }
+    
+    .action-button:active {
+        transform: scale(0.95);
+    }
+}

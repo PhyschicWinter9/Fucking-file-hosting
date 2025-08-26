@@ -141,6 +141,20 @@
 }
 
 @layer utilities {
+
+    @keyframes shimmer {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+      
+      .animate-shimmer {
+        animation: shimmer 1.5s infinite linear;
+      }
+
     .gradient-primary {
         background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
     }

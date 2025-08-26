@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Route;
 // Main upload interface (Inertia page)
 Route::get('/', [FileUploadController::class, 'index'])->name('upload.index');
 
+// Upload demo page (Inertia page)
+Route::get('/demo', function () {
+    return \Inertia\Inertia::render('UploadDemo');
+})->name('upload.demo');
+
 // File information page (Inertia page)
 Route::get('/file/{fileId}', [FileUploadController::class, 'show'])->name('file.show');
 

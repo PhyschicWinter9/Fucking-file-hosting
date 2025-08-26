@@ -65,15 +65,32 @@ class ChunkedUploadService
         // Validate chunk
         $this->validateChunk($session, $chunkIndex, $chunkFile);
 
+        // Record chunk upload start time for speed calculation
+        $chunkStartTime = microtime(true);
+
         // Store chunk temporarily with retry logic
         $maxRetries = (int) config('filehosting.chunked_upload_max_retries', 3);
         $chunkPath = $this->storeChunkWithRetry($sessionId, $chunkIndex, $chunkFile, $maxRetries);
+
+        // Calculate chunk upload time and speed
+        $chunkEndTime = microtime(true);
+        $chunkUploadTime = $chunkEndTime - $chunkStartTime;
+        $chunkSpeed = $chunkUploadTime > 0 ? $chunkFile->getSize() / $chunkUploadTime : 0;
 
         // Update session with uploaded chunk
         $session->addChunk($chunkIndex);
 
         // Extend session timeout on active uploads
         $this->extendSessionTimeout($session);
+
+        // Calculate overall progress and statistics
+        $totalChunks = ceil($session->total_size / $session->chunk_size);
+        $uploadedChunks = count($session->uploaded_chunks ?? []);
+        $uploadedBytes = min($uploadedChunks * $session->chunk_size, $session->total_size);
+        $remainingBytes = $session->total_size - $uploadedBytes;
+        
+        // Estimate time remaining based on current chunk speed
+        $estimatedTimeRemaining = $chunkSpeed > 0 ? $remainingBytes / $chunkSpeed : null;
 
         return [
             'chunk_index' => $chunkIndex,
@@ -82,6 +99,13 @@ class ChunkedUploadService
             'is_complete' => $session->isComplete(),
             'next_chunk' => $session->isComplete() ? null : $session->getNextChunkIndex(),
             'missing_chunks' => $session->getMissingChunks(),
+            'uploaded_chunks' => $uploadedChunks,
+            'total_chunks' => $totalChunks,
+            'uploaded_bytes' => $uploadedBytes,
+            'total_bytes' => $session->total_size,
+            'chunk_speed' => $chunkSpeed,
+            'estimated_time_remaining' => $estimatedTimeRemaining,
+            'chunk_upload_time' => $chunkUploadTime,
         ];
     }
 
@@ -577,6 +601,88 @@ class ChunkedUploadService
             'active_sessions' => UploadSession::where('expires_at', '>', now())->count(),
             'expired_sessions' => UploadSession::expired()->count(),
             'total_sessions' => UploadSession::count(),
+        ];
+    }
+
+    /**
+     * Get detailed upload session information with progress statistics.
+     */
+    public function getSessionDetails(string $sessionId): array
+    {
+        $session = UploadSession::findBySessionId($sessionId);
+
+        if (!$session) {
+            throw new \Exception('Upload session not found');
+        }
+
+        $totalChunks = ceil($session->total_size / $session->chunk_size);
+        $uploadedChunks = count($session->uploaded_chunks ?? []);
+        $uploadedBytes = min($uploadedChunks * $session->chunk_size, $session->total_size);
+        $remainingBytes = $session->total_size - $uploadedBytes;
+        $progress = $session->getProgress();
+
+        // Calculate session duration
+        $sessionDuration = $session->created_at ? now()->diffInSeconds($session->created_at) : 0;
+        $averageSpeed = $sessionDuration > 0 ? $uploadedBytes / $sessionDuration : 0;
+        $estimatedTimeRemaining = $averageSpeed > 0 ? $remainingBytes / $averageSpeed : null;
+
+        return [
+            'session_id' => $session->session_id,
+            'original_name' => $session->original_name,
+            'total_size' => $session->total_size,
+            'chunk_size' => $session->chunk_size,
+            'total_chunks' => $totalChunks,
+            'uploaded_chunks' => $uploadedChunks,
+            'uploaded_bytes' => $uploadedBytes,
+            'remaining_bytes' => $remainingBytes,
+            'progress' => $progress,
+            'is_complete' => $session->isComplete(),
+            'next_chunk' => $session->isComplete() ? null : $session->getNextChunkIndex(),
+            'missing_chunks' => $session->getMissingChunks(),
+            'session_duration' => $sessionDuration,
+            'average_speed' => $averageSpeed,
+            'estimated_time_remaining' => $estimatedTimeRemaining,
+            'expires_at' => $session->expires_at,
+            'created_at' => $session->created_at,
+            'updated_at' => $session->updated_at,
+        ];
+    }
+
+    /**
+     * Get upload performance metrics for monitoring.
+     */
+    public function getUploadMetrics(): array
+    {
+        $activeSessions = UploadSession::where('expires_at', '>', now())->get();
+        
+        $totalActiveSessions = $activeSessions->count();
+        $totalActiveBytes = $activeSessions->sum('total_size');
+        $totalUploadedBytes = 0;
+        $averageProgress = 0;
+
+        if ($totalActiveSessions > 0) {
+            foreach ($activeSessions as $session) {
+                $uploadedChunks = count($session->uploaded_chunks ?? []);
+                $uploadedBytes = min($uploadedChunks * $session->chunk_size, $session->total_size);
+                $totalUploadedBytes += $uploadedBytes;
+            }
+            
+            $averageProgress = $totalActiveBytes > 0 ? ($totalUploadedBytes / $totalActiveBytes) * 100 : 0;
+        }
+
+        // Get server load metrics
+        $serverMetrics = $this->getServerLoadMetrics();
+
+        return [
+            'active_sessions' => $totalActiveSessions,
+            'total_active_bytes' => $totalActiveBytes,
+            'total_uploaded_bytes' => $totalUploadedBytes,
+            'average_progress' => round($averageProgress, 2),
+            'server_load' => $serverMetrics['server_load'],
+            'memory_usage_percent' => $serverMetrics['memory_usage_percent'],
+            'disk_usage_percent' => $serverMetrics['disk_usage_percent'],
+            'can_accept_uploads' => $serverMetrics['can_accept_uploads'],
+            'recommended_chunk_size' => $serverMetrics['recommended_chunk_size'],
         ];
     }
 
