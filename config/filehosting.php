@@ -70,6 +70,9 @@ return [
     'chunked_upload_session_timeout_hours' => env('CHUNKED_UPLOAD_SESSION_TIMEOUT_HOURS', 48), // 48 hours for large files
     'chunked_upload_cleanup_interval_hours' => env('CHUNKED_UPLOAD_CLEANUP_INTERVAL_HOURS', 6), // Clean up every 6 hours
     'chunked_upload_max_retries' => env('CHUNKED_UPLOAD_MAX_RETRIES', 3), // Max retries per chunk
+    'chunked_upload_finalize_timeout' => env('CHUNKED_UPLOAD_FINALIZE_TIMEOUT', 900), // 15 minutes for finalization
+    'chunked_upload_assembly_memory_limit' => env('CHUNKED_UPLOAD_ASSEMBLY_MEMORY_LIMIT', '1G'), // Memory limit for assembly
+    'chunked_upload_large_file_threshold' => env('CHUNKED_UPLOAD_LARGE_FILE_THRESHOLD', 524288000), // 500MB threshold for special handling
 
     /*
     |--------------------------------------------------------------------------

@@ -231,6 +231,21 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                 });
             }
 
+            // Update progress to show finalization is starting
+            updateState({
+                progress: 95,
+                status: 'uploading',
+            });
+
+            // Show toast for large files
+            if (file.size > 100 * 1024 * 1024) { // 100MB
+                toast({
+                    title: 'Processing Large File',
+                    description: 'Finalizing upload... This may take a few minutes for very large files.',
+                    variant: 'default',
+                });
+            }
+
             const finalizeResponse = await fetch('/api/upload/finalize', {
                 method: 'POST',
                 headers: {
@@ -245,7 +260,17 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             });
 
             if (!finalizeResponse.ok) {
-                throw new Error('Failed to finalize upload');
+                if (finalizeResponse.status === 524) {
+                    throw new Error('Upload finalization timed out. This can happen with very large files. Please try again or contact support if the issue persists.');
+                }
+                
+                // Try to get error details from response
+                try {
+                    const errorData = await finalizeResponse.json();
+                    throw new Error(errorData.error?.message || 'Failed to finalize upload');
+                } catch {
+                    throw new Error(`Failed to finalize upload (HTTP ${finalizeResponse.status})`);
+                }
             }
 
             const finalResult = await finalizeResponse.json();
@@ -260,7 +285,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                 uploadedBytes: file.size,
             });
         },
-        [expirationDays],
+        [expirationDays, toast],
     );
 
     // Simple upload for smaller files

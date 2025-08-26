@@ -101,20 +101,231 @@ class ChunkedUploadService
         }
 
         try {
-            // Assemble chunks into final file
-            $finalFile = $this->assembleChunks($session);
+            // Set longer execution time for large files
+            $originalTimeLimit = ini_get('max_execution_time');
+            set_time_limit(1800); // 30 minutes for very large files
+            
+            // Use minimal memory approach for very large files
+            if ($session->total_size > 104857600) { // 100MB
+                return $this->finalizeUploadDirect($session, $expirationDays);
+            }
 
-            // Store the assembled file using FileService
+            // For smaller files, use the standard approach
+            $finalFile = $this->assembleChunks($session);
             $fileModel = $this->fileService->store($finalFile, $expirationDays);
 
             // Clean up temporary chunks and session
             $this->cleanupSession($sessionId);
 
+            // Restore original limits
+            set_time_limit($originalTimeLimit);
+
             return $fileModel;
 
         } catch (\Exception $e) {
+            // Restore original limits on error
+            if (isset($originalTimeLimit)) {
+                set_time_limit($originalTimeLimit);
+            }
+            
             // Clean up on failure
             $this->cleanupSession($sessionId);
+            throw $e;
+        }
+    }
+
+    /**
+     * Finalize upload directly without creating UploadedFile instance.
+     * This bypasses Laravel's memory-intensive file handling for very large files.
+     */
+    private function finalizeUploadDirect(UploadSession $session, ?int $expirationDays = null): File
+    {
+        // Generate file information
+        $fileId = $this->generateSecureFileId();
+        $extension = pathinfo($session->original_name, PATHINFO_EXTENSION);
+        $fileName = $fileId . ($extension ? '.' . $extension : '');
+        $filePath = 'files/' . substr($fileId, 0, 2) . '/' . substr($fileId, 2, 2) . '/' . $fileName;
+        
+        // Get full destination path
+        $destinationPath = Storage::disk('public')->path($filePath);
+        
+        // Ensure directory exists
+        $directory = dirname($destinationPath);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        // Assemble chunks directly to final location
+        $this->assembleChunksDirect($session, $destinationPath);
+
+        // Calculate checksum for duplicate detection
+        $checksum = hash_file('sha256', $destinationPath);
+
+        // Check for existing file with same checksum
+        $existingFile = \App\Models\File::where('checksum', $checksum)
+            ->where('file_size', $session->total_size)
+            ->notExpired()
+            ->first();
+
+        if ($existingFile) {
+            // Delete the newly assembled file since we have a duplicate
+            unlink($destinationPath);
+            return $existingFile;
+        }
+
+        // Determine MIME type
+        $mimeType = mime_content_type($destinationPath) ?: 'application/octet-stream';
+
+        // Calculate expiration date
+        $expiresAt = null;
+        if ($expirationDays !== null) {
+            $expiresAt = \Carbon\Carbon::now()->addDays($expirationDays);
+        }
+
+        // Generate delete token
+        $deleteToken = null;
+        if (config('filehosting.generate_delete_tokens', true)) {
+            $deleteToken = hash('sha256', \Illuminate\Support\Str::random(32) . microtime(true));
+        }
+
+        // Create file record directly
+        $fileModel = \App\Models\File::create([
+            'file_id' => $fileId,
+            'original_name' => $session->original_name,
+            'file_path' => $filePath,
+            'mime_type' => $mimeType,
+            'file_size' => $session->total_size,
+            'checksum' => $checksum,
+            'expires_at' => $expiresAt,
+            'delete_token' => $deleteToken,
+        ]);
+
+        return $fileModel;
+    }
+
+    /**
+     * Assemble chunks directly to destination without creating temporary file.
+     */
+    private function assembleChunksDirect(UploadSession $session, string $destinationPath): void
+    {
+        $chunkDir = "chunks/{$session->session_id}";
+        $totalChunks = ceil($session->total_size / $session->chunk_size);
+
+        $handle = fopen($destinationPath, 'wb');
+        if (!$handle) {
+            throw new \Exception('Failed to create destination file');
+        }
+
+        try {
+            $bufferSize = 65536; // 64KB buffer for better performance
+            
+            for ($i = 0; $i < $totalChunks; $i++) {
+                $chunkPath = "{$chunkDir}/chunk_{$i}";
+
+                if (!Storage::disk('local')->exists($chunkPath)) {
+                    throw new \Exception("Missing chunk: {$i}");
+                }
+
+                $chunkFullPath = Storage::disk('local')->path($chunkPath);
+                $chunkHandle = fopen($chunkFullPath, 'rb');
+                
+                if (!$chunkHandle) {
+                    throw new \Exception("Failed to open chunk: {$i}");
+                }
+
+                // Stream chunk data
+                while (!feof($chunkHandle)) {
+                    $buffer = fread($chunkHandle, $bufferSize);
+                    if ($buffer === false) {
+                        fclose($chunkHandle);
+                        throw new \Exception("Failed to read chunk: {$i}");
+                    }
+                    
+                    if (fwrite($handle, $buffer) === false) {
+                        fclose($chunkHandle);
+                        throw new \Exception("Failed to write data for chunk: {$i}");
+                    }
+                }
+                
+                fclose($chunkHandle);
+                
+                // Force garbage collection and memory management every 10 chunks
+                if ($i % 10 === 0) {
+                    if (function_exists('gc_collect_cycles')) {
+                        gc_collect_cycles();
+                    }
+                    
+                    // Check memory usage and throw error if too high
+                    $memoryUsage = memory_get_usage(true);
+                    $memoryLimit = $this->parseMemoryLimit(ini_get('memory_limit'));
+                    
+                    if ($memoryUsage > ($memoryLimit * 0.8)) { // 80% of limit
+                        throw new \Exception("Memory usage too high during assembly: " . 
+                            number_format($memoryUsage / 1024 / 1024, 2) . "MB");
+                    }
+                }
+            }
+
+        } finally {
+            fclose($handle);
+        }
+
+        // Verify assembled file size
+        $assembledSize = filesize($destinationPath);
+        if ($assembledSize !== $session->total_size) {
+            unlink($destinationPath);
+            throw new \Exception("Assembled file size mismatch. Expected: {$session->total_size}, Got: {$assembledSize}");
+        }
+    }
+
+    /**
+     * Generate secure file ID (copied from FileService to avoid dependency).
+     */
+    private function generateSecureFileId(): string
+    {
+        do {
+            $hash = hash('sha256', random_bytes(32) . microtime(true) . uniqid());
+        } while (\App\Models\File::where('file_id', $hash)->exists());
+
+        return $hash;
+    }
+
+    /**
+     * Parse memory limit string to bytes.
+     */
+    private function parseMemoryLimit(string $limit): int
+    {
+        $limit = trim($limit);
+        $last = strtolower($limit[strlen($limit) - 1]);
+        $value = (int) $limit;
+
+        switch ($last) {
+            case 'g':
+                $value *= 1024;
+            case 'm':
+                $value *= 1024;
+            case 'k':
+                $value *= 1024;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Finalize upload asynchronously for very large files.
+     */
+    private function finalizeUploadAsync(UploadSession $session, ?int $expirationDays = null): File
+    {
+        // For now, we'll still process synchronously but with optimizations
+        // In a production environment, you'd dispatch this to a queue
+        
+        // Mark session as processing
+        $session->update(['status' => 'processing']);
+        
+        try {
+            return $this->finalizeUpload($session->session_id, $expirationDays);
+        } catch (\Exception $e) {
+            $session->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
             throw $e;
         }
     }
@@ -236,7 +447,7 @@ class ChunkedUploadService
     }
 
     /**
-     * Assemble chunks into final file.
+     * Assemble chunks into final file with optimized streaming.
      */
     private function assembleChunks(UploadSession $session): UploadedFile
     {
@@ -252,7 +463,10 @@ class ChunkedUploadService
         }
 
         try {
-            // Assemble chunks in order
+            // Set larger buffer size for better performance
+            $bufferSize = 1048576; // 1MB buffer
+            
+            // Assemble chunks in order with streaming
             for ($i = 0; $i < $totalChunks; $i++) {
                 $chunkPath = "{$chunkDir}/chunk_{$i}";
 
@@ -260,8 +474,41 @@ class ChunkedUploadService
                     throw new \Exception("Missing chunk: {$i}");
                 }
 
-                $chunkContent = Storage::disk('local')->get($chunkPath);
-                fwrite($handle, $chunkContent);
+                // Stream chunk content instead of loading into memory
+                $chunkFullPath = Storage::disk('local')->path($chunkPath);
+                $chunkHandle = fopen($chunkFullPath, 'rb');
+                
+                if (!$chunkHandle) {
+                    throw new \Exception("Failed to open chunk: {$i}");
+                }
+
+                // Stream chunk data in smaller buffers to avoid memory issues
+                while (!feof($chunkHandle)) {
+                    $buffer = fread($chunkHandle, $bufferSize);
+                    if ($buffer === false) {
+                        fclose($chunkHandle);
+                        throw new \Exception("Failed to read chunk: {$i}");
+                    }
+                    
+                    if (fwrite($handle, $buffer) === false) {
+                        fclose($chunkHandle);
+                        throw new \Exception("Failed to write assembled data for chunk: {$i}");
+                    }
+                    
+                    // Flush output buffer periodically to prevent timeouts
+                    if ($i % 10 === 0) {
+                        if (function_exists('fastcgi_finish_request')) {
+                            fastcgi_finish_request();
+                        }
+                    }
+                }
+                
+                fclose($chunkHandle);
+                
+                // Clear any potential memory buildup
+                if (function_exists('gc_collect_cycles')) {
+                    gc_collect_cycles();
+                }
             }
 
             fclose($handle);

@@ -87,3 +87,29 @@ Header set Content-Type "application/javascript"
     AddOutputFilterByType DEFLATE application/x-javascript
     AddOutputFilterByType DEFLATE application/json
 </IfModule>
+
+# PHP Configuration for large file uploads
+
+<IfModule mod_php.c>
+    # Increase limits for large file processing
+    php_value max_execution_time 900
+    php_value max_input_time 900
+    php_value memory_limit 1G
+    php_value upload_max_filesize 10G
+    php_value post_max_size 10G
+    php_value max_file_uploads 100
+    
+    # Disable output buffering for large files
+    php_value output_buffering Off
+    php_value implicit_flush On
+</IfModule>
+
+# Special handling for upload finalization endpoint
+<LocationMatch "^/api/upload/finalize">
+    <IfModule mod_php.c>
+        php_value max_execution_time 1800
+        php_value memory_limit 512M
+        php_value output_buffering Off
+        php_value implicit_flush On
+    </IfModule>
+</LocationMatch>

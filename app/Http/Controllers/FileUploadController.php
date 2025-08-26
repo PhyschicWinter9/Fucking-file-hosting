@@ -236,6 +236,12 @@ class FileUploadController extends Controller
             $sessionId = $request->input('session_id');
             $expirationDays = $request->input('expiration_days');
 
+            // Set appropriate timeout for large file processing
+            set_time_limit(1800); // 30 minutes for very large files
+            
+            // Use conservative memory limit since we're streaming
+            ini_set('memory_limit', '512M');
+
             // Finalize the chunked upload
             $fileModel = $this->chunkedUploadService->finalizeUpload($sessionId, $expirationDays);
 
@@ -265,14 +271,28 @@ class FileUploadController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            // Provide more specific error handling for timeout issues
+            $errorCode = 'FINALIZATION_ERROR';
+            $errorMessage = 'Failed to finalize upload';
+            
+            if (strpos($e->getMessage(), 'timeout') !== false || 
+                strpos($e->getMessage(), 'time limit') !== false) {
+                $errorCode = 'TIMEOUT_ERROR';
+                $errorMessage = 'Upload finalization timed out. Please try uploading smaller chunks or contact support for very large files.';
+            } elseif (strpos($e->getMessage(), 'memory') !== false) {
+                $errorCode = 'MEMORY_ERROR';
+                $errorMessage = 'Insufficient memory to process this file size. Please try uploading smaller files.';
+            }
+
             return response()->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'FINALIZATION_ERROR',
-                    'message' => 'Failed to finalize upload',
-                    'details' => ['error' => $e->getMessage()]
+                    'code' => $errorCode,
+                    'message' => $errorMessage,
+                    'details' => ['error' => $e->getMessage()],
+                    'retry_suggestion' => $errorCode === 'TIMEOUT_ERROR' ? 'Try uploading with smaller chunk sizes or contact support' : null
                 ]
-            ], 500);
+            ], $errorCode === 'TIMEOUT_ERROR' ? 524 : 500);
         }
     }
 
