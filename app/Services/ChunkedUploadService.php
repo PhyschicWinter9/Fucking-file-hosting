@@ -257,7 +257,7 @@ class ChunkedUploadService
                     
                     // Check memory usage and throw error if too high
                     $memoryUsage = memory_get_usage(true);
-                    $memoryLimit = $this->parseMemoryLimit(ini_get('memory_limit'));
+                    $memoryLimit = self::parseMemoryLimit(ini_get('memory_limit'));
                     
                     if ($memoryUsage > ($memoryLimit * 0.8)) { // 80% of limit
                         throw new \Exception("Memory usage too high during assembly: " . 
@@ -290,26 +290,7 @@ class ChunkedUploadService
         return $hash;
     }
 
-    /**
-     * Parse memory limit string to bytes.
-     */
-    private function parseMemoryLimit(string $limit): int
-    {
-        $limit = trim($limit);
-        $last = strtolower($limit[strlen($limit) - 1]);
-        $value = (int) $limit;
 
-        switch ($last) {
-            case 'g':
-                $value *= 1024;
-            case 'm':
-                $value *= 1024;
-            case 'k':
-                $value *= 1024;
-        }
-
-        return $value;
-    }
 
     /**
      * Finalize upload asynchronously for very large files.
@@ -607,6 +588,63 @@ class ChunkedUploadService
         // Default threshold is 25MB (Cloudflare compatibility)
         return $fileSize > $threshold;
     }
+    
+    /**
+     * Get current server load metrics for upload optimization.
+     */
+    public function getServerLoadMetrics(): array
+    {
+        $activeSessions = UploadSession::where('expires_at', '>', now())->count();
+        $memoryUsage = memory_get_usage(true);
+        $memoryLimit = self::parseMemoryLimit(ini_get('memory_limit'));
+        $memoryPercent = $memoryLimit > 0 ? ($memoryUsage / $memoryLimit) * 100 : 0;
+        
+        // Check disk usage
+        $storagePath = storage_path();
+        $totalSpace = disk_total_space($storagePath);
+        $freeSpace = disk_free_space($storagePath);
+        $diskUsagePercent = $totalSpace > 0 ? (($totalSpace - $freeSpace) / $totalSpace) * 100 : 0;
+        
+        return [
+            'active_sessions' => $activeSessions,
+            'memory_usage_percent' => round($memoryPercent, 2),
+            'disk_usage_percent' => round($diskUsagePercent, 2),
+            'recommended_chunk_size' => $this->getRecommendedChunkSize($memoryPercent, $activeSessions),
+            'can_accept_uploads' => $memoryPercent < 80 && $diskUsagePercent < 90,
+            'server_load' => $this->calculateServerLoad($memoryPercent, $activeSessions, $diskUsagePercent)
+        ];
+    }
+    
+    /**
+     * Get recommended chunk size based on current server load.
+     */
+    private function getRecommendedChunkSize(float $memoryPercent, int $activeSessions): int
+    {
+        $baseChunkSize = (int) config('filehosting.chunk_size', 10485760); // 10MB
+        
+        // Reduce chunk size based on memory usage and active sessions
+        if ($memoryPercent > 75 || $activeSessions > 10) {
+            return max(2097152, $baseChunkSize / 2); // Min 2MB
+        }
+        
+        if ($memoryPercent > 60 || $activeSessions > 5) {
+            return max(5242880, $baseChunkSize * 0.75); // Min 5MB
+        }
+        
+        return $baseChunkSize;
+    }
+    
+    /**
+     * Calculate overall server load score (0-100).
+     */
+    private function calculateServerLoad(float $memoryPercent, int $activeSessions, float $diskPercent): int
+    {
+        $memoryScore = min(100, $memoryPercent * 1.2); // Memory is critical
+        $sessionScore = min(100, $activeSessions * 5); // Each session adds 5 points
+        $diskScore = min(100, $diskPercent * 0.8); // Disk is less critical
+        
+        return (int) min(100, ($memoryScore + $sessionScore + $diskScore) / 3);
+    }
 
     /**
      * Extend session timeout when chunks are actively being uploaded.
@@ -623,24 +661,64 @@ class ChunkedUploadService
     }
 
     /**
-     * Calculate optimal chunk size based on file size.
+     * Calculate optimal chunk size based on file size and server load.
      */
-    public static function calculateOptimalChunkSize(int $fileSize): int
+    public static function calculateOptimalChunkSize(int $fileSize, ?int $userCount = null): int
     {
-        // Base chunk size: 1MB
-        $baseChunkSize = 1048576;
-
-        // For files larger than 1GB, use 5MB chunks
-        if ($fileSize > 1073741824) {
-            return $baseChunkSize * 5;
+        // Get base chunk size from config (default 10MB for better performance)
+        $baseChunkSize = (int) config('filehosting.chunk_size', 10485760); // 10MB
+        
+        // Adjust based on current server load
+        $memoryUsage = memory_get_usage(true);
+        $memoryLimit = self::parseMemoryLimit(ini_get('memory_limit'));
+        $memoryUsagePercent = $memoryLimit > 0 ? ($memoryUsage / $memoryLimit) * 100 : 0;
+        
+        // Reduce chunk size if memory usage is high
+        if ($memoryUsagePercent > 70) {
+            $baseChunkSize = min($baseChunkSize, 5242880); // Max 5MB if memory is high
         }
-
-        // For files larger than 500MB, use 2MB chunks
-        if ($fileSize > 524288000) {
-            return $baseChunkSize * 2;
+        
+        // Adjust based on file size for optimal performance
+        if ($fileSize > 5368709120) { // > 5GB
+            return min($baseChunkSize * 2, 20971520); // Max 20MB chunks
         }
-
-        // Default 1MB chunks
+        
+        if ($fileSize > 1073741824) { // > 1GB
+            return min($baseChunkSize * 1.5, 15728640); // Max 15MB chunks
+        }
+        
+        if ($fileSize > 104857600) { // > 100MB
+            return $baseChunkSize; // Use configured chunk size
+        }
+        
+        // For smaller files, use smaller chunks to reduce memory usage
+        if ($fileSize < 52428800) { // < 50MB
+            return min($baseChunkSize / 2, 5242880); // Min 5MB chunks
+        }
+        
         return $baseChunkSize;
+    }
+    
+    /**
+     * Parse memory limit string to bytes.
+     */
+    private static function parseMemoryLimit(string $limit): int
+    {
+        $limit = trim($limit);
+        if ($limit === '-1') return 0; // No limit
+        
+        $last = strtolower($limit[strlen($limit) - 1]);
+        $value = (int) $limit;
+
+        switch ($last) {
+            case 'g':
+                $value *= 1024;
+            case 'm':
+                $value *= 1024;
+            case 'k':
+                $value *= 1024;
+        }
+
+        return $value;
     }
 }

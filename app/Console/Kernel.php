@@ -12,7 +12,25 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Clean up expired upload sessions every 6 hours
+        // Performance monitoring every hour
+        $schedule->command('filehosting:monitor --cleanup')
+                 ->hourly()
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Aggressive optimization during low traffic (3 AM)
+        $schedule->command('filehosting:optimize --aggressive')
+                 ->dailyAt('03:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Light optimization every 4 hours
+        $schedule->command('filehosting:optimize')
+                 ->cron('0 */4 * * *')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Clean up expired upload sessions every 6 hours (existing)
         $schedule->command('upload:cleanup-sessions')
                  ->everySixHours()
                  ->withoutOverlapping()
