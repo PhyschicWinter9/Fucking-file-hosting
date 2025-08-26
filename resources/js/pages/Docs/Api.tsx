@@ -73,7 +73,7 @@ export default function ApiDocs({ maxFileSize, chunkThreshold }: ApiDocsProps) {
                         {/* Hero Section */}
                         <div className="mb-12 text-center">
                             <h1 className="mb-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
-                                <span className="gradient-primary-text">Fucking</span> File API
+                                <span className="gradient-primary-text">Fucking</span> File API Documentation
                             </h1>
                             <p className="mx-auto mb-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
                                 RESTful API for blazing fast file hosting. No authentication, no bullshit.
