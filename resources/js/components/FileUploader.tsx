@@ -255,7 +255,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
                 uploadedChunks++;
                 const progress = (uploadedChunks / totalChunks) * 100;
-                const uploadedBytes = Math.min(uploadedChunks * chunkSize, file.size);
+                // Calculate actual uploaded bytes more accurately
+                const uploadedBytes = chunkIndex === totalChunks - 1 ? file.size : Math.min(uploadedChunks * chunkSize, file.size);
 
                 // Calculate speed and ETA
                 const currentTime = Date.now();
@@ -280,9 +281,9 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                 });
             }
 
-            // Update progress to show finalization is starting
+            // Keep progress at 100% during finalization
             updateState({
-                progress: 95,
+                progress: 100,
                 status: 'uploading',
             });
 
@@ -944,9 +945,9 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                             {/* <Label htmlFor="expiration" className="text-sm">
                                <Clock/> File expiration
                             </Label> */}
-                            <div className="row flex items-center mb-2">
-                                <Clock size={16}/>
-                                <Label htmlFor="expiration" className="text-sm ml-2 ">
+                            <div className="row mb-2 flex items-center">
+                                <Clock size={16} />
+                                <Label htmlFor="expiration" className="ml-2 text-sm">
                                     File expiration
                                 </Label>
                             </div>
