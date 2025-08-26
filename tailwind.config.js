@@ -123,5 +123,79 @@ export default {
       },
     }
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function({ addUtilities }) {
+      const scrollbarUtilities = {
+        '.scrollbar-thin': {
+          'scrollbar-width': 'thin',
+          'scrollbar-color': 'rgb(var(--muted)) rgb(var(--background))',
+        },
+        '.scrollbar-none': {
+          'scrollbar-width': 'none',
+          '-ms-overflow-style': 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+        },
+        '.scrollbar-custom': {
+          '&::-webkit-scrollbar': {
+            width: '8px',
+            height: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'rgb(var(--muted) / 0.1)',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'rgb(var(--muted))',
+            borderRadius: '4px',
+            '&:hover': {
+              background: 'rgb(var(--muted-foreground) / 0.8)',
+            },
+          },
+          '&::-webkit-scrollbar-corner': {
+            background: 'rgb(var(--background))',
+          },
+        },
+        '.scrollbar-primary': {
+          '&::-webkit-scrollbar': {
+            width: '8px',
+            height: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'rgb(var(--muted) / 0.1)',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
+            borderRadius: '4px',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #f7931e 0%, #ff6b35 100%)',
+            },
+          },
+          '&::-webkit-scrollbar-corner': {
+            background: 'rgb(var(--background))',
+          },
+        },
+        '.scrollbar-minimal': {
+          '&::-webkit-scrollbar': {
+            width: '4px',
+            height: '4px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'rgb(var(--muted-foreground) / 0.3)',
+            borderRadius: '2px',
+            '&:hover': {
+              background: 'rgb(var(--muted-foreground) / 0.6)',
+            },
+          },
+        },
+      };
+      addUtilities(scrollbarUtilities);
+    },
+  ],
 }

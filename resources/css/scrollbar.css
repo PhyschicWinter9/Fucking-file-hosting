@@ -1,0 +1,425 @@
+/* Fucking File Hosting - Custom Scrollbar Styles */
+
+/* Base scrollbar styles optimized for dark theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 107, 53, 0.6) rgba(45, 45, 45, 0.3);
+}
+
+/* Global scrollbar for the entire app */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 107, 53, 0.6) transparent;
+}
+
+html::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+html::-webkit-scrollbar-track {
+  background: rgba(45, 45, 45, 0.2);
+  border-radius: 4px;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #f7931e 0%, #ff6b35 100%);
+  box-shadow: 0 0 8px rgba(255, 107, 53, 0.4);
+  transform: scaleY(1.1);
+}
+
+html::-webkit-scrollbar-corner {
+  background: rgba(26, 26, 26, 1);
+}
+
+/* Fucking File Brand Scrollbar Variants */
+
+/* Premium scrollbar for main content areas */
+.scrollbar-ffh::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-ffh::-webkit-scrollbar-track {
+  background: rgba(45, 45, 45, 0.3);
+  border-radius: 5px;
+  border: 1px solid rgba(64, 64, 64, 0.5);
+}
+
+.scrollbar-ffh::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff6b35 100%);
+  border-radius: 5px;
+  border: 1px solid rgba(26, 26, 26, 0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.scrollbar-ffh::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #f7931e 0%, #ff6b35 50%, #f7931e 100%);
+  box-shadow: 
+    0 0 12px rgba(255, 107, 53, 0.6),
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.scrollbar-ffh::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, #e55a2b 0%, #e8841a 100%);
+  transform: scale(0.95);
+}
+
+/* Elegant variant for cards and modals */
+.scrollbar-elegant::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-elegant::-webkit-scrollbar-track {
+  background: rgba(45, 45, 45, 0.2);
+  border-radius: 4px;
+}
+
+.scrollbar-elegant::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 53, 0.7);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.scrollbar-elegant::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 53, 0.9);
+  box-shadow: 0 0 6px rgba(255, 107, 53, 0.3);
+}
+
+/* Dark theme scrollbar */
+.scrollbar-dark::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Rounded scrollbar */
+.scrollbar-rounded::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-rounded::-webkit-scrollbar-track {
+  background: rgb(var(--muted) / 0.1);
+  border-radius: 10px;
+}
+
+.scrollbar-rounded::-webkit-scrollbar-thumb {
+  background: rgb(var(--primary));
+  border-radius: 10px;
+  border: 2px solid rgb(var(--background));
+  transition: all 0.3s ease;
+}
+
+.scrollbar-rounded::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--primary) / 0.8);
+  border-width: 1px;
+}
+
+/* Animated gradient scrollbar for special sections */
+.scrollbar-gradient::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-gradient::-webkit-scrollbar-track {
+  background: rgba(45, 45, 45, 0.2);
+  border-radius: 4px;
+}
+
+.scrollbar-gradient::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #ff6b35, #f7931e, #ff6b35, #f7931e);
+  background-size: 300% 300%;
+  border-radius: 4px;
+  animation: ffh-gradient-shift 4s ease infinite;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.scrollbar-gradient::-webkit-scrollbar-thumb:hover {
+  animation-duration: 1.5s;
+  box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
+}
+
+@keyframes ffh-gradient-shift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 100% 50%; }
+  50% { background-position: 100% 100%; }
+  75% { background-position: 0% 100%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Pulsing scrollbar for upload areas */
+.scrollbar-pulse::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-pulse::-webkit-scrollbar-track {
+  background: rgba(45, 45, 45, 0.2);
+  border-radius: 4px;
+}
+
+.scrollbar-pulse::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  border-radius: 4px;
+  animation: ffh-pulse 2s ease-in-out infinite;
+}
+
+.scrollbar-pulse::-webkit-scrollbar-thumb:hover {
+  animation: none;
+  background: linear-gradient(135deg, #f7931e 0%, #ff6b35 100%);
+  box-shadow: 0 0 10px rgba(255, 107, 53, 0.6);
+}
+
+@keyframes ffh-pulse {
+  0%, 100% { 
+    opacity: 0.7;
+    transform: scaleY(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scaleY(1.1);
+  }
+}
+
+/* Invisible scrollbar that appears on hover */
+.scrollbar-hover::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-hover::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.scrollbar-hover:hover::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted-foreground) / 0.5);
+}
+
+.scrollbar-hover::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--muted-foreground) / 0.8) !important;
+}
+
+/* Neon glow scrollbar for premium sections */
+.scrollbar-neon::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-neon::-webkit-scrollbar-track {
+  background: rgba(26, 26, 26, 0.8);
+  border-radius: 5px;
+  border: 1px solid rgba(64, 64, 64, 0.3);
+}
+
+.scrollbar-neon::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  border-radius: 5px;
+  box-shadow: 
+    0 0 8px rgba(255, 107, 53, 0.6),
+    0 0 16px rgba(255, 107, 53, 0.4),
+    0 0 24px rgba(255, 107, 53, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 107, 53, 0.3);
+}
+
+.scrollbar-neon::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #f7931e 0%, #ff6b35 100%);
+  box-shadow: 
+    0 0 12px rgba(255, 107, 53, 0.8),
+    0 0 24px rgba(255, 107, 53, 0.6),
+    0 0 36px rgba(255, 107, 53, 0.4),
+    0 0 48px rgba(255, 107, 53, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: scaleY(1.1);
+}
+
+/* Cyber-style scrollbar for API sections */
+.scrollbar-cyber::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-cyber::-webkit-scrollbar-track {
+  background: linear-gradient(90deg, 
+    rgba(26, 26, 26, 0.8) 0%,
+    rgba(45, 45, 45, 0.4) 50%,
+    rgba(26, 26, 26, 0.8) 100%);
+  border-radius: 3px;
+}
+
+.scrollbar-cyber::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    #ff6b35 20%,
+    #f7931e 50%,
+    #ff6b35 80%,
+    transparent 100%);
+  border-radius: 3px;
+  animation: cyber-scan 3s linear infinite;
+}
+
+.scrollbar-cyber::-webkit-scrollbar-thumb:hover {
+  animation-duration: 1s;
+  box-shadow: 0 0 6px rgba(255, 107, 53, 0.8);
+}
+
+@keyframes cyber-scan {
+  0% { background-position: -100% 0; }
+  100% { background-position: 100% 0; }
+}
+
+/* Responsive scrollbar - thinner on mobile */
+@media (max-width: 768px) {
+  .scrollbar-responsive::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .scrollbar-responsive::-webkit-scrollbar-thumb {
+    border-radius: 2px;
+  }
+}
+
+@media (min-width: 769px) {
+  .scrollbar-responsive::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .scrollbar-responsive::-webkit-scrollbar-track {
+    background: rgb(var(--muted) / 0.1);
+    border-radius: 4px;
+  }
+  
+  .scrollbar-responsive::-webkit-scrollbar-thumb {
+    background: rgb(var(--muted));
+    border-radius: 4px;
+  }
+  
+  .scrollbar-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--muted-foreground) / 0.8);
+  }
+}
+/*
+ Upload zone specific scrollbar */
+.scrollbar-upload::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-upload::-webkit-scrollbar-track {
+  background: rgba(45, 45, 45, 0.1);
+  border-radius: 3px;
+}
+
+.scrollbar-upload::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 53, 0.4);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.scrollbar-upload::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 53, 0.8);
+  box-shadow: 0 0 4px rgba(255, 107, 53, 0.4);
+}
+
+/* Code block scrollbar */
+.scrollbar-code::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-code::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.scrollbar-code::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 53, 0.6);
+  border-radius: 3px;
+}
+
+.scrollbar-code::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 53, 0.9);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .scrollbar-ffh::-webkit-scrollbar,
+  .scrollbar-neon::-webkit-scrollbar,
+  .scrollbar-gradient::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-ffh::-webkit-scrollbar-track,
+  .scrollbar-neon::-webkit-scrollbar-track,
+  .scrollbar-gradient::-webkit-scrollbar-track {
+    border-radius: 3px;
+  }
+  
+  .scrollbar-ffh::-webkit-scrollbar-thumb,
+  .scrollbar-neon::-webkit-scrollbar-thumb,
+  .scrollbar-gradient::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .scrollbar-ffh::-webkit-scrollbar-thumb,
+  .scrollbar-neon::-webkit-scrollbar-thumb,
+  .scrollbar-gradient::-webkit-scrollbar-thumb {
+    background: #ff6b35 !important;
+    border: 1px solid #ffffff !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .scrollbar-gradient::-webkit-scrollbar-thumb,
+  .scrollbar-pulse::-webkit-scrollbar-thumb,
+  .scrollbar-cyber::-webkit-scrollbar-thumb {
+    animation: none !important;
+  }
+  
+  .scrollbar-ffh::-webkit-scrollbar-thumb:hover,
+  .scrollbar-neon::-webkit-scrollbar-thumb:hover {
+    transform: none !important;
+  }
+}

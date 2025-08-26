@@ -30,7 +30,7 @@ export default function Layout({
     return (
         <>
             <MetaTags title={title} description={description} image={image} url={url} />
-            <div className="dark min-h-screen bg-background text-foreground">
+            <div className="dark scrollbar-ffh min-h-screen bg-background text-foreground">
                 {/* Header */}
                 <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-sm">
                     <div className="container-responsive py-3 sm:py-4">
@@ -43,7 +43,7 @@ export default function Layout({
                                 <h1 className="gradient-primary-text hidden text-lg font-bold sm:block sm:text-xl lg:text-2xl">
                                     Fucking File Hosting
                                 </h1>
-                                <h1 className="gradient-primary-text text-lg font-bold sm:hidden">FFH</h1>
+                                <h1 className="gradient-primary-text text-lg font-bold sm:hidden">Fucking File</h1>
                             </div>
 
                             {/* Desktop Navigation */}

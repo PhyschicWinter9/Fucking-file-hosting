@@ -456,3 +456,4 @@
 /* Component styles */
 @import './components/progress-bar.css';
 @import './components/mobile-enhancements.css';
+@import './scrollbar.css';
