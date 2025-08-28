@@ -35,6 +35,24 @@ class Kernel extends ConsoleKernel
                  ->everySixHours()
                  ->withoutOverlapping()
                  ->runInBackground();
+        
+        // Clean up expired files daily at 2 AM
+        $schedule->command('files:cleanup --force')
+                 ->dailyAt('02:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Clean up temporary files (chunks, failed uploads) every 12 hours
+        $schedule->command('upload:cleanup-temp --force')
+                 ->twiceDaily(2, 14) // 2 AM and 2 PM
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Comprehensive cleanup weekly on Sunday at 3 AM
+        $schedule->command('upload:cleanup-all --force')
+                 ->weeklyOn(0, '03:00') // Sunday at 3 AM
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**

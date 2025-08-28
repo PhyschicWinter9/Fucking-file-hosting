@@ -24,9 +24,13 @@ class ChunkedUploadService
     public function initializeSession(
         string $originalName,
         int $totalSize,
-        int $chunkSize = 1048576, // 1MB default chunk size
+        int $chunkSize = null, // Use config default (2MB for shared hosting optimization)
         ?int $expirationDays = null
     ): UploadSession {
+        // Use configured chunk size if not specified (2MB default for shared hosting)
+        if ($chunkSize === null) {
+            $chunkSize = config('filehosting.chunk_size', 2097152); // 2MB default
+        }
         $sessionId = $this->generateSessionId();
 
         // Calculate session expiration using configurable timeout
@@ -734,7 +738,7 @@ class ChunkedUploadService
         }
         
         if ($memoryPercent > 60 || $activeSessions > 5) {
-            return max(5242880, $baseChunkSize * 0.75); // Min 5MB
+            return max(2097152, $baseChunkSize * 0.75); // Min 2MB
         }
         
         return $baseChunkSize;
@@ -771,8 +775,8 @@ class ChunkedUploadService
      */
     public static function calculateOptimalChunkSize(int $fileSize, ?int $userCount = null): int
     {
-        // Get base chunk size from config (default 10MB for better performance)
-        $baseChunkSize = (int) config('filehosting.chunk_size', 10485760); // 10MB
+        // Get base chunk size from config (default 2MB for shared hosting optimization)
+        $baseChunkSize = (int) config('filehosting.chunk_size', 2097152); // 2MB
         
         // Adjust based on current server load
         $memoryUsage = memory_get_usage(true);
@@ -781,7 +785,7 @@ class ChunkedUploadService
         
         // Reduce chunk size if memory usage is high
         if ($memoryUsagePercent > 70) {
-            $baseChunkSize = min($baseChunkSize, 5242880); // Max 5MB if memory is high
+            $baseChunkSize = min($baseChunkSize, 2097152); // Max 2MB if memory is high
         }
         
         // Adjust based on file size for optimal performance
@@ -799,7 +803,7 @@ class ChunkedUploadService
         
         // For smaller files, use smaller chunks to reduce memory usage
         if ($fileSize < 52428800) { // < 50MB
-            return min($baseChunkSize / 2, 5242880); // Min 5MB chunks
+            return min($baseChunkSize / 2, 2097152); // Min 2MB chunks
         }
         
         return $baseChunkSize;

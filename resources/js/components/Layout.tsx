@@ -129,7 +129,7 @@ export default function Layout({
                 {/* Footer */}
                 <footer className="mt-auto border-t border-border bg-card">
                     <div className="container-responsive py-8 sm:py-12">
-                        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
                             {/* Brand */}
                             <div className="space-y-4 lg:col-span-1">
                                 <div className="hover-lift flex cursor-pointer items-center space-x-2" onClick={() => (window.location.href = '/')}>
@@ -197,6 +197,43 @@ export default function Layout({
                                     <li className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
                                         <span className="text-primary">•</span>
                                         <span>Rate limiting</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {/* Legal */}
+                            <div className="space-y-4 sm:col-span-2 lg:col-span-1">
+                                <h3 className="font-semibold text-foreground">Legal</h3>
+                                <ul className="space-y-2 text-sm text-muted-foreground">
+                                    <li>
+                                        <a 
+                                            href="/terms" 
+                                            className="flex cursor-pointer items-center space-x-2 transition-colors hover:text-primary"
+                                        >
+                                            <span className="text-primary">•</span>
+                                            <span>Terms of Service</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a 
+                                            href="/privacy" 
+                                            className="flex cursor-pointer items-center space-x-2 transition-colors hover:text-primary"
+                                        >
+                                            <span className="text-primary">•</span>
+                                            <span>Privacy Policy</span>
+                                        </a>
+                                    </li>
+                                    <li className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
+                                        <span className="text-primary">•</span>
+                                        <span>No tracking</span>
+                                    </li>
+                                    <li className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
+                                        <span className="text-primary">•</span>
+                                        <span>Zero data collection</span>
+                                    </li>
+                                    <li className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
+                                        <span className="text-primary">•</span>
+                                        <span>Complete privacy</span>
                                     </li>
                                 </ul>
                             </div>

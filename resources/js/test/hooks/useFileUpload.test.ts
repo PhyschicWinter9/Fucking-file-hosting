@@ -15,7 +15,7 @@ vi.mock('@/lib/api', () => ({
 describe('useFileUpload', () => {
   let mockFile: File;
   let mockLargeFile: File;
-  let mockApiClient: any;
+  let mockApiClient: unknown;
 
   beforeEach(async () => {
     // Get the mocked API client
@@ -365,7 +365,7 @@ describe('useFileUpload', () => {
   it('handles custom chunk size', async () => {
     const { result } = renderHook(() => useFileUpload());
 
-    const customChunkSize = 10 * 1024 * 1024; // 10MB
+    const customChunkSize = 2 * 1024 * 1024; // 2MB
 
     await act(async () => {
       await result.current.uploadFile(mockLargeFile, {

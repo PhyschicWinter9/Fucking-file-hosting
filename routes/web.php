@@ -3,6 +3,7 @@
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\FileDownloadController;
 use App\Http\Controllers\SetupController;
+use App\Http\Controllers\LegalController;
 use Illuminate\Support\Facades\Route;
 
 // Main upload interface (Inertia page)
@@ -22,6 +23,10 @@ Route::get('/p/{fileId}', [FileDownloadController::class, 'preview'])->name('fil
 
 // API Documentation page
 Route::get('/docs/api', [FileUploadController::class, 'apiDocs'])->name('docs.api');
+
+// Legal pages
+Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
 
 // SEO routes
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');

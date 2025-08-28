@@ -199,6 +199,20 @@ export class ApiClient {
     }
 
     /**
+     * Get upload configuration from server
+     */
+    async getUploadConfig(): Promise<{
+        chunk_size: number;
+        max_file_size: number;
+        chunk_threshold: number;
+        session_timeout_hours: number;
+        max_retries: number;
+    }> {
+        const response = await this.axiosInstance.get('/upload/config');
+        return response.data.data;
+    }
+
+    /**
      * Initialize chunked upload (using the chunk endpoint with init data)
      */
     async initChunkedUpload(
@@ -345,6 +359,8 @@ export class ApiClient {
         this.retryDelay = retryDelay;
     }
 
+
+
     /**
      * Health check endpoint
      */
@@ -352,7 +368,7 @@ export class ApiClient {
         try {
             const response = await this.axiosInstance.get('/health');
             return response.status === 200;
-        } catch (error) {
+        } catch  {
             return false;
         }
     }

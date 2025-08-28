@@ -485,7 +485,7 @@ console.log(result.data.download_url);`}
   -d '{
     "original_name": "large-file.zip",
     "total_size": 104857600,
-    "chunk_size": 5242880
+    "chunk_size": 2097152
   }'`}
                                                     language="bash"
                                                     id="chunked-init"

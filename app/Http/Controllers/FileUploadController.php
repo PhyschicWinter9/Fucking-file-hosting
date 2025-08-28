@@ -46,6 +46,7 @@ class FileUploadController extends Controller
         return Inertia::render('Upload/Index', [
             'maxFileSize' => $this->getMaxFileSize(),
             'chunkThreshold' => 26214400, // 25MB threshold for chunked uploads (Cloudflare compatibility)
+            'chunkSize' => config('filehosting.chunk_size', 2097152), // Get chunk size from config
             'supportedFormats' => $this->getSupportedFormats(),
         ]);
     }
@@ -614,6 +615,23 @@ class FileUploadController extends Controller
         ];
 
         return in_array($mimeType, $previewableMimes);
+    }
+
+    /**
+     * Get upload configuration for frontend.
+     */
+    public function getUploadConfig(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'chunk_size' => (int) config('filehosting.chunk_size', 2097152),
+                'max_file_size' => (int) $this->getMaxFileSize(),
+                'chunk_threshold' => 26214400, // 25MB threshold for chunked uploads
+                'session_timeout_hours' => (int) config('filehosting.chunked_upload_session_timeout_hours', 48),
+                'max_retries' => (int) config('filehosting.chunked_upload_max_retries', 3),
+            ]
+        ]);
     }
 
     /**

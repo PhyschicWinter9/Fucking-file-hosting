@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
+import { ApiClient } from '@/lib/api';
 import { FileValidation, UploadProgress } from '@/types/upload';
 import { Clock, LoaderCircle, Upload } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -167,8 +168,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
 
     // Chunked upload for larger files
     const uploadFileChunked = useCallback(
-        async (file: File, index: number, updateState: (updates: Partial<FileUploadState>) => void): Promise<void> => {
-            const chunkSize = 2 * 1024 * 1024;
+        async (file: File, index: number, updateState: (updates: Partial<FileUploadState>) => void, chunkSize: number): Promise<void> => {
             const totalChunks = Math.ceil(file.size / chunkSize);
             let uploadedChunks = 0;
             const startTime = Date.now();
@@ -466,10 +466,13 @@ const FileUploader: React.FC<FileUploaderProps> = ({
             updateState({ status: 'uploading' });
 
             try {
-                const shouldUseChunkedUpload = file.size > 25 * 1024 * 1024;
+                // Get configuration and determine if we should use chunked upload
+                const apiClient = ApiClient.getInstance();
+                const config = await apiClient.getUploadConfig();
+                const shouldUseChunkedUpload = file.size > config.chunk_threshold;
 
                 if (shouldUseChunkedUpload) {
-                    await uploadFileChunked(file, index, updateState);
+                    await uploadFileChunked(file, index, updateState, config.chunk_size);
                 } else {
                     await uploadFileSimple(file, index, updateState);
                 }

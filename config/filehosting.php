@@ -13,7 +13,13 @@ return [
 
     'max_file_size' => env('MAX_FILE_SIZE', (int)(env('MAX_FILE_SIZE_MB', 10) * 1024 * 1024)), // Configurable via MB setting
     'max_file_size_mb' => env('MAX_FILE_SIZE_MB', 100), // Maximum file size in MB (configurable)
-    'chunk_size' => env('CHUNK_SIZE', 2097152), // 2MB in bytes (Cloudflare compatibility)
+    // 2MB chunks recommended for shared hosting environments
+    // - Uses less memory per chunk operation
+    // - Saves inodes on filesystem
+    // - Works well with Cloudflare's limits
+    // - Balances upload speed and stability
+    // Future upgrade note: Consider 10MB+ chunks when upgrading to better hardware
+    'chunk_size' => env('CHUNK_SIZE', 20971520), // 2MB in bytes (optimized for shared hosting)
     'bypass_cloudflare' => env('BYPASS_CLOUDFLARE', true), // Enable direct server uploads to bypass Cloudflare limits
     'files_storage_path' => env('FILES_STORAGE_PATH', 'files'),
     'cleanup_expired_files' => env('CLEANUP_EXPIRED_FILES', true),
@@ -73,6 +79,22 @@ return [
     'chunked_upload_finalize_timeout' => env('CHUNKED_UPLOAD_FINALIZE_TIMEOUT', 900), // 15 minutes for finalization
     'chunked_upload_assembly_memory_limit' => env('CHUNKED_UPLOAD_ASSEMBLY_MEMORY_LIMIT', '1G'), // Memory limit for assembly
     'chunked_upload_large_file_threshold' => env('CHUNKED_UPLOAD_LARGE_FILE_THRESHOLD', 524288000), // 500MB threshold for special handling
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cleanup Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for automatic cleanup of temporary files and failed uploads.
+    |
+    */
+
+    'cleanup_temp_chunks_enabled' => env('CLEANUP_TEMP_CHUNKS_ENABLED', true), // Enable automatic temp chunk cleanup
+    'cleanup_failed_uploads_enabled' => env('CLEANUP_FAILED_UPLOADS_ENABLED', true), // Enable failed upload cleanup
+    'cleanup_temp_chunks_age_hours' => env('CLEANUP_TEMP_CHUNKS_AGE_HOURS', 24), // Clean temp chunks older than 24 hours
+    'cleanup_failed_uploads_age_hours' => env('CLEANUP_FAILED_UPLOADS_AGE_HOURS', 72), // Clean failed uploads older than 72 hours
+    'cleanup_orphaned_files_enabled' => env('CLEANUP_ORPHANED_FILES_ENABLED', true), // Clean files without database records
+    'cleanup_empty_directories_enabled' => env('CLEANUP_EMPTY_DIRECTORIES_ENABLED', true), // Clean empty upload directories
 
     /*
     |--------------------------------------------------------------------------
