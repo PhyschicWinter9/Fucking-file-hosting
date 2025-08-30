@@ -24,3 +24,5 @@ yarn-error.log
 /.zed
 
 *.zip
+
+.env.prod

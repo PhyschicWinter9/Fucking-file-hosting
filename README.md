@@ -1,4 +1,7 @@
-"# Fucking File Hosting
+# Fucking File Hosting
+
+[![](https://raw.githubusercontent.com/PhyschicWinter9/Fucking-file-hosting/refs/heads/main/FK.png)](https://raw.githubusercontent.com/PhyschicWinter9/Fucking-file-hosting/refs/heads/main/FK.png)
+
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)
