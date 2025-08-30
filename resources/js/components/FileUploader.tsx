@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/useToast';
-import { cn } from '@/lib/utils';
 import { ApiClient } from '@/lib/api';
+import { cn } from '@/lib/utils';
 import { FileValidation, UploadProgress } from '@/types/upload';
 import { Clock, LoaderCircle, Upload } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -961,7 +961,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({
                                 <SelectTrigger className="w-32">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="bg-[#101828] text-white">
                                     <SelectItem value="1">1 day</SelectItem>
                                     <SelectItem value="7">7 days</SelectItem>
                                     <SelectItem value="14">14 days</SelectItem>
