@@ -126,6 +126,7 @@ Our documentation is organized in a step-by-step manner for easy navigation:
 7. **[Troubleshooting](documentation/7.troubleshooting.md)** - Common issues and solutions
 8. **[Advanced Configuration](documentation/8.advanced-configuration.md)** - Performance tuning
 9. **[Social Media Guide](documentation/9.social-media-guide.md)** - Marketing and community
+10. **[Cronjobs and Commands](documentation/10.cronjobs-and-commands.md)** - Automated tasks and monitoring
 
 ## 🛠️ Technology Stack
 
@@ -148,7 +149,9 @@ Our documentation is organized in a step-by-step manner for easy navigation:
 - **Chunked uploads** - Large file support
 - **File deduplication** - Storage optimization
 - **Rate limiting** - Abuse prevention
-- **Cron jobs** - Automatic cleanup
+- **Automated cleanup** - Cronjobs for maintenance
+- **Performance monitoring** - Resource tracking
+- **Custom commands** - System administration
 - **CDN ready** - Global distribution
 
 ## 🔧 API Usage

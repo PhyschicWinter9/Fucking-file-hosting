@@ -25,6 +25,9 @@ Our documentation is organized in a step-by-step manner with numbered files for 
 ### Marketing & Community
 - **[9. Social Media Guide](9.social-media-guide.md)** - Marketing strategies and community building
 
+### System Administration
+- **[10. Cronjobs and Commands](10.cronjobs-and-commands.md)** - Automated tasks and custom commands
+
 ## 🚀 Quick Navigation
 
 ### For Developers
@@ -60,6 +63,7 @@ Our documentation is organized in a step-by-step manner with numbered files for 
 - [6. Maintenance Mode](6.maintenance-mode.md) - Maintenance procedures
 - [7. Troubleshooting](7.troubleshooting.md) - Problem solving
 - [8. Advanced Configuration](8.advanced-configuration.md) - Performance tuning
+- [10. Cronjobs and Commands](10.cronjobs-and-commands.md) - Automated tasks
 
 **Features & Capabilities**
 - [3. Project Overview](3.project-overview.md) - Complete feature list
@@ -82,8 +86,9 @@ Our documentation is organized in a step-by-step manner with numbered files for 
 **System Administrators**
 1. Plan deployment with [Deployment Guide](4.deployment-guide.md)
 2. Configure environments with [Environment Setup](5.environment-setup.md)
-3. Set up monitoring with [Advanced Configuration](8.advanced-configuration.md)
-4. Prepare for issues with [Troubleshooting](7.troubleshooting.md)
+3. Set up automation with [Cronjobs and Commands](10.cronjobs-and-commands.md)
+4. Set up monitoring with [Advanced Configuration](8.advanced-configuration.md)
+5. Prepare for issues with [Troubleshooting](7.troubleshooting.md)
 
 **Marketing Teams**
 1. Understand features in [Project Overview](3.project-overview.md)
@@ -101,14 +106,16 @@ Our documentation is organized in a step-by-step manner with numbered files for 
 ### Production Deployment
 1. **[Deployment Guide](4.deployment-guide.md)** - Deploy to production
 2. **[Advanced Configuration](8.advanced-configuration.md)** - Optimize performance
-3. **[Maintenance Mode](6.maintenance-mode.md)** - Plan maintenance
-4. **[Troubleshooting](7.troubleshooting.md)** - Prepare for issues
+3. **[Cronjobs and Commands](10.cronjobs-and-commands.md)** - Set up automation
+4. **[Maintenance Mode](6.maintenance-mode.md)** - Plan maintenance
+5. **[Troubleshooting](7.troubleshooting.md)** - Prepare for issues
 
 ### Ongoing Operations
-1. **[Maintenance Mode](6.maintenance-mode.md)** - Regular maintenance
-2. **[Troubleshooting](7.troubleshooting.md)** - Solve problems
-3. **[Advanced Configuration](8.advanced-configuration.md)** - Continuous optimization
-4. **[Social Media Guide](9.social-media-guide.md)** - Community building
+1. **[Cronjobs and Commands](10.cronjobs-and-commands.md)** - Monitor automated tasks
+2. **[Maintenance Mode](6.maintenance-mode.md)** - Regular maintenance
+3. **[Troubleshooting](7.troubleshooting.md)** - Solve problems
+4. **[Advanced Configuration](8.advanced-configuration.md)** - Continuous optimization
+5. **[Social Media Guide](9.social-media-guide.md)** - Community building
 
 ## 🆘 Getting Help
 
