@@ -1,5 +1,6 @@
 import FileUploader from '@/components/FileUploader';
 import Layout from '@/components/Layout';
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/useToast';
@@ -10,7 +11,9 @@ interface UploadIndexProps {
     maxFileSize?: number;
 }
 
-export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadIndexProps) {
+export default function UploadIndex({ 
+    maxFileSize = 100 * 1024 * 1024
+}: UploadIndexProps) {
     const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
     const { toast } = useToast();
 
@@ -80,6 +83,8 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                     </div>
                 </div>
 
+
+
                 {/* Upload Interface */}
                 <div className="mb-12 sm:mb-16 lg:mb-20">
                     <FileUploader
@@ -89,6 +94,7 @@ export default function UploadIndex({ maxFileSize = 100 * 1024 * 1024 }: UploadI
                         maxFileSize={maxFileSize}
                         defaultExpirationDays={1}
                         multiple={true}
+                        disabled={false}
                         className="slide-in-up mx-auto max-w-5xl"
                     />
                 </div>

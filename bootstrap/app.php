@@ -28,12 +28,15 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\CheckSetupMiddleware::class,
+            \App\Http\Middleware\CheckMaintenanceMode::class,
             \App\Http\Middleware\PrivacyProtectionMiddleware::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\PerformanceMonitoring::class,
         ]);
+
+
 
         // API throttling is handled by custom rate limiters in routes
 

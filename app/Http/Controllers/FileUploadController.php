@@ -38,7 +38,7 @@ class FileUploadController extends Controller
      *
      * Requirements: 1.1 - Display large drag-and-drop upload area as primary interface
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         // Apply privacy protection
         $this->privacyManager->preventLogging();
@@ -48,6 +48,8 @@ class FileUploadController extends Controller
             'chunkThreshold' => 26214400, // 25MB threshold for chunked uploads (Cloudflare compatibility)
             'chunkSize' => config('filehosting.chunk_size', 2097152), // Get chunk size from config
             'supportedFormats' => $this->getSupportedFormats(),
+            'privateServiceActive' => $request->get('private_service_active', false),
+            'privateServiceMessage' => $request->get('private_service_message', ''),
         ]);
     }
 

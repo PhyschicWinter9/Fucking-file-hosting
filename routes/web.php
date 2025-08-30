@@ -37,6 +37,8 @@ Route::post('/api/setup/save', [SetupController::class, 'save'])->name('setup.sa
 Route::post('/api/setup/test-database', [SetupController::class, 'testDatabase'])->name('setup.test-database');
 Route::get('/api/setup/check', [SetupController::class, 'checkSetup'])->name('setup.check');
 
+
+
 // Error page testing routes (remove in production)
 if (app()->environment(['local', 'testing'])) {
     Route::get('/test/404', [App\Http\Controllers\ErrorController::class, 'notFound'])->name('test.404');
@@ -44,6 +46,11 @@ if (app()->environment(['local', 'testing'])) {
     Route::get('/test/500', [App\Http\Controllers\ErrorController::class, 'serverError'])->name('test.500');
     Route::get('/test/503', [App\Http\Controllers\ErrorController::class, 'serviceUnavailable'])->name('test.503');
     Route::get('/test/file-not-found/{fileId?}', [App\Http\Controllers\ErrorController::class, 'fileNotFound'])->name('test.file-not-found');
+    
+    // Test maintenance mode
+    Route::get('/test/maintenance', function() {
+        return \Inertia\Inertia::render('Maintenance');
+    })->name('test.maintenance');
 }
 
 require __DIR__.'/settings.php';

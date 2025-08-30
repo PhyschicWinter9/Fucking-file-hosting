@@ -123,4 +123,23 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Maintenance Mode Configuration
+    |--------------------------------------------------------------------------
+    */
+    'maintenance_mode_enabled' => env('MAINTENANCE_MODE_ENABLED', false),
+    'maintenance_message' => env('MAINTENANCE_MESSAGE', "We're making some fucking awesome improvements. Be back soon!"),
+    'maintenance_bypass_token' => env('MAINTENANCE_BYPASS_TOKEN'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Private Service Configuration
+    |--------------------------------------------------------------------------
+    */
+    'private_service_enabled' => env('PRIVATE_SERVICE_ENABLED', false),
+    'private_service_message' => env('PRIVATE_SERVICE_MESSAGE', 'Access rights are currently reserved for authorized users.'),
+    'private_service_secret_path' => env('PRIVATE_SERVICE_SECRET_PATH', 'secret-access'),
+    'authorized_tokens' => env('AUTHORIZED_TOKENS', ''),
+
 ];
