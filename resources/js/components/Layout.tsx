@@ -153,7 +153,7 @@ export default function Layout({
                                 <ul className="space-y-2 text-sm text-muted-foreground">
                                     <li className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
                                         <span className="text-primary">•</span>
-                                        <span>Up to 1 GB file uploads</span>
+                                        <span>Up to 100 MB file uploads</span>
                                     </li>
                                     <li className="flex cursor-default items-center space-x-2 transition-colors hover:text-foreground">
                                         <span className="text-primary">•</span>
